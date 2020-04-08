@@ -94,7 +94,7 @@ calcule_probabilite_matrice_apprentissage <- function(texte, alphabets) {
     }
   }
       for(s in 1:length(probabilites)){
-        if(probabilites[s]==0){probabilites[s]=10**(-7)}
+        if(probabilites[s]==0){probabilites[s]=10**(-6)}
       }
   matrice_apprentissage = matrix( probabilites, nrow = length(alphabets), byrow = TRUE, dimnames = list(matrice_col_row_names, matrice_col_row_names) )
   return(matrice_apprentissage)
@@ -229,7 +229,7 @@ frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_
 
 
 ```{r execution, echo=FALSE}
-texte=" do you think we are what we have for the others, and with he she is in a of or not know hamlet says this that when who to go me more man"
+texte=" do you think we are what we have for the others, and with he she is in a of or not know says this that when who to gone "
 proba_texte=proba(texte,matrice_apprentissage)
 texte_crypte = cryptage(texte,alphabets)
 frequences_lettres_cryptees=frequencelettres(texte_crypte,extraction_alphabets_du_texte)
@@ -243,12 +243,12 @@ texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_
 p=proba(texte_crypte,matrice_apprentissage)
 if(p>best[[2]]){best=list(texte_crypte,p)}
 if(l%%100==0){
-  
-cat("n=",l)  
-cat("Original : ",proba_texte,texte,"\n")
-cat("Courant  : ",proba(texte_crypte,matrice_apprentissage),texte_crypte,"\n")
-cat("meilleur : ",best[[2]],best[[1]],"\n\n")
+cat("n = ",l,"\n")
+cat("Original : ",texte,"    ",proba_texte,"\n")
+cat("Courant  : ",texte_crypte,"    ",proba(texte_crypte,matrice_apprentissage),"\n")
+cat("meilleur : ",best[[1]],"    ",best[[2]],"\n\n")
 }
+
 }
 ```
 

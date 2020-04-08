@@ -244,6 +244,7 @@ p=proba(texte_crypte,matrice_apprentissage)
 if(p>best[[2]]){best=list(texte_crypte,p)}
 if(l%%100==0){
   
+cat("n=",l)  
 cat("Original : ",proba_texte,texte,"\n")
 cat("Courant  : ",proba(texte_crypte,matrice_apprentissage),texte_crypte,"\n")
 cat("meilleur : ",best[[2]],best[[1]],"\n\n")

@@ -50,6 +50,27 @@ traitement_regex_caracteres_speciaux <- function(character) {
 }
 
 
+
+ordonner_alphabets_par_frequence = function(texte, alphabets){
+
+  alphabets_ordonnees = c(numeric(length(alphabets)))
+
+    for( i in 1:str_length(texte) ){
+      for( j in 1:length(alphabets) ){
+        if(str_sub(texte,i,i) == alphabets[j]) {
+          alphabets_ordonnees[j] = alphabets_ordonnees[j] + 1
+        }
+      }
+    }
+  
+  names(alphabets_ordonnees) = alphabets
+  alphabets_ordonnees = sort(alphabets_ordonnees,decreasing = TRUE)
+  
+  return(alphabets_ordonnees)
+}
+
+
+
 remplissage_valeur_bigrames <- function(data) {
   alphabets = extraction_alphabets(paste(data[[1]], collapse = ''))
 
@@ -163,26 +184,6 @@ calcule_frequence_trigrames <- function(texte, alphabets) {
 }
 
 
-calcul_qualite_log = function(texte,matrice_de_selection) {
-  qualite = 0
-  
-  if(is.matrix(matrice_de_selection)) {
-    for(compteur in 1:(str_length(texte)-1) ) {
-      probabilite_bigrame = matrice_de_selection[ str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1) ]
-      qualite = qualite + log(probabilite_bigrame)
-    }
-      
-  } else {
-      
-    for(compteur in 1:(str_length(texte)-2) ) {
-      probabilite_trigrame = matrice_de_selection[ str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2) ]
-      qualite = qualite + log(probabilite_trigrame)
-    }
-  }
-  return(qualite)
-}
-
-
 calcul_qualite_multiplication = function(texte,matrice_de_selection) {
   qualite = 1
   
@@ -203,42 +204,90 @@ calcul_qualite_multiplication = function(texte,matrice_de_selection) {
 
 
 
-cryptage <- function(texte,alphabets) {
-  alphabets_crypte = sample(alphabets)
-  texte_crypte = c()
+calcul_qualite_log = function(texte,matrice_de_selection) {
+  qualite = 0
   
-  for( i in 1:(str_length(texte)) ) {
-    lettre_texte = str_sub(texte,i,i)
-    texte_crypte = str_c( texte_crypte , alphabets[ which( lettre_texte == alphabets_crypte) ] )
-  }
-  
-  return(texte_crypte)
-}
-
-
-##permutation_alphabet = function(alphabets) 
-textevoisin=function(texte,frequences_lettres){
-  lettres_ordonnees=names(frequences_lettres)
-  alphabet_du_texte=extraction_alphabets(texte)
-  indice1=sample(length(alphabet_du_texte),size=1)
-  indice2=sample(1:length(lettres_ordonnees),size=1,prob=frequences_lettres/sum(frequences_lettres))
-  paire_indice=c(indice1,indice2)
-  paire_indice
-  texte_voisin=''
-  for(i in 1:str_length(texte)){
-    if(str_sub(texte,i,i)==alphabet_du_texte[paire_indice[1]]){
-      texte_voisin=str_c(texte_voisin,toString(lettres_ordonnees[paire_indice[2]]))
+  if(is.matrix(matrice_de_selection)) {
+    for(compteur in 1:(str_length(texte)-1) ) {
+      probabilite_bigrame = matrice_de_selection[ str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1) ]
+      qualite = qualite + log(probabilite_bigrame)
+    }
       
-    }
-     else if(str_sub(texte,i,i)==lettres_ordonnees[paire_indice[2]]){
-      texte_voisin=str_c(texte_voisin,alphabet_du_texte[paire_indice[1]])
-     }
-    else{
-      texte_voisin=str_c(texte_voisin,str_sub(texte,i,i))
+  } else {
+      
+    for(compteur in 1:(str_length(texte)-2) ) {
+      probabilite_trigrame = matrice_de_selection[ str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2) ]
+      qualite = qualite + log(probabilite_trigrame)
     }
   }
-  return(texte_voisin)
+  return(qualite)
 }
+
+
+
+permutation_des_lettres_par_unifome = function (alphabets) {
+  
+  indice_lettre_1 = sample(length(alphabets), size = 1)
+  indice_lettre_2 = sample(length(alphabets), size = 1)
+  
+  lettre_1 = alphabets[indice_lettre_1]
+  lettre_2 = alphabets[indice_lettre_2]
+  
+  lettres_a_permuter=c(lettre_1,lettre_2)
+
+  return(lettres_a_permuter)
+}
+
+
+
+permutation_des_lettres_par_frequence = function (alphabets_ordonnees) {
+  
+  indice_lettre_1 = sample(length(alphabets_ordonnees), size = 1)
+  indice_lettre_2 = sample(1:length(alphabets_ordonnees), size = 1, prob = alphabets_ordonnees/sum(alphabets_ordonnees))
+  
+  lettre_1 = toString(names(alphabets_ordonnees[indice_lettre_1]))
+  lettre_2 = toString(names(alphabets_ordonnees[indice_lettre_2]))
+  
+  lettres_a_permuter=c(lettre_1,lettre_2)
+
+  return(lettres_a_permuter)
+}
+
+
+
+decryptage_texte_par_permutation_2_lettres = function(texte,lettres_a_permuter){
+  texte_decrypte = ''
+  for(i in 1:str_length(texte)){
+    if(str_sub(texte,i,i) == lettres_a_permuter[1]) {
+        texte_decrypte = str_c(texte_decrypte,lettres_a_permuter[2])
+        
+     } else if (str_sub(texte,i,i) == lettres_a_permuter[2]) {
+        texte_decrypte = str_c(texte_decrypte, lettres_a_permuter[1])
+        
+     } else {
+        texte_decrypte = str_c(texte_decrypte,str_sub(texte,i,i))
+    }
+  }
+  return(texte_decrypte)
+}
+
+
+
+decryptage_par_frequence_alphabets = function(texte_crypte, alphabets_matrice_selection_ordonnees,alphabets_texte_crypte_ordonnees){
+  #alphabets_matrice_selection_ordonnees = names(alphabets_matrice_selection_ordonnees)
+  #alphabets_texte_crypte_ordonnees = names(alphabets_texte_crypte_ordonnees)
+  
+  texte_decrypte = ''
+  for(i in 1:str_length(texte_crypte)){
+    for(j in 1:length(alphabets_texte_crypte_ordonnees)){
+      if(str_sub(texte_crypte,i,i) == alphabets_texte_crypte_ordonnees[j]){
+        texte_decrypte = str_c(texte_decrypte, alphabets_matrice_selection_ordonnees[j])
+      }
+    }
+  }
+  return(texte_decrypte)
+}
+
 
 
 algo_metropolis = function(texte_decrypte_etape_precedent,texte_decrypte_etape_suivant,calcul_qualite,matrice_de_selection) {
@@ -258,41 +307,17 @@ algo_metropolis = function(texte_decrypte_etape_precedent,texte_decrypte_etape_s
 
 
 
-calcul_frequence_lettres = function(texte){
-  alphabets = extraction_alphabets(texte)
-  frequence_lettres = c(numeric(length(alphabets)))
-
-    for( i in 1:str_length(texte) ){
-      for( j in 1:length(alphabets) ){
-        if(str_sub(texte,i,i) == alphabets[j]) {
-          frequence_lettres[j] = frequence_lettres[j]+1
-        }
-      }
-    }
-  names(frequence_lettres) = alphabets
-  frequence_lettres=sort(frequence_lettres,decreasing = TRUE)
-  return(frequence_lettres)
-}
-
-
-
-textecrypte2=function(texte_crypte, frequence_lettres,frequence_lettres_cryptees){
-  lettres_cryptees_ordonnees=names(frequence_lettres_cryptees)
-  print(lettres_cryptees_ordonnees)
-  lettres_ordonnees=names(frequence_lettres)
-  print(lettres_ordonnees)
-  texte_crypte2 = ''
-  for(i in 1:str_length(texte_crypte)){
-    for(j in 1:length(lettres_cryptees_ordonnees)){
-      if(str_sub(texte_crypte,i,i)==lettres_cryptees_ordonnees[j]){
-    texte_crypte2=str_c(texte_crypte2,lettres_ordonnees[j])
-      }
-    }
+cryptage <- function(texte,alphabets) {
+  alphabets_crypte = sample(alphabets)
+  texte_crypte = c()
+  
+  for( i in 1:(str_length(texte)) ) {
+    lettre_texte = str_sub(texte,i,i)
+    texte_crypte = str_c( texte_crypte , alphabets[ which( lettre_texte == alphabets_crypte) ] )
   }
-  return(toString(texte_crypte2))
+  
+  return(texte_crypte)
 }
-
-
 ```
 
 ## Embedded Application

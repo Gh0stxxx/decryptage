@@ -183,23 +183,35 @@ calcul_qualite_log = function(texte,matrice_de_selection) {
 }
 
 
-
-calcul_qualite_multiplication = function(texte, matrice_de_selection){
+calcul_qualite_multiplication = function(texte,matrice_de_selection) {
   qualite = 1
-  for(compteur in 1: (str_length(texte)-1) ){
-    qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte,compteur+1,compteur+1)]
+  
+  if(is.matrix(matrice_de_selection)) {
+    for(compteur in 1:(str_length(texte)-1) ) {
+      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte,compteur+1,compteur+1)]
+    }
+      
+  } else {
+      
+    for(compteur in 1:(str_length(texte)-2) ) {
+      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2)]
+    }
   }
   return(qualite)
 }
 
 
+
+
 cryptage <- function(texte,alphabets) {
   alphabets_crypte = sample(alphabets)
   texte_crypte = c()
+  
   for( i in 1:(str_length(texte)) ) {
     lettre_texte = str_sub(texte,i,i)
     texte_crypte = str_c( texte_crypte , alphabets[ which( lettre_texte == alphabets_crypte) ] )
   }
+  
   return(texte_crypte)
 }
 

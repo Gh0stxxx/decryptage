@@ -56,9 +56,10 @@ remplissage_valeur_bigrames <- function(data) {
   matrice_bigrames = matrix(1e-10,nrow = length(alphabets), ncol = length(alphabets), byrow = TRUE, dimnames = list(alphabets, alphabets))
 
   for (compteur in 1:length(data[[1]]) ) {
-      lettre_precedente = strsplit(data[compteur,1], NULL)[[1]][1]
-      lettre_suivante = strsplit(data[compteur,1], NULL)[[1]][2]
-      matrice_bigrames[lettre_precedente,lettre_suivante] = data[compteur,2]
+      bigram = strsplit(data[[1]][compteur], NULL)[[1]]
+      lettre_precedente = bigram[1]
+      lettre_suivante = bigram[2]
+      matrice_bigrames[lettre_precedente,lettre_suivante] = data[[2]][compteur]
   }
   
   for (numero_ligne in 1:nrow(matrice_bigrames) ) {
@@ -75,10 +76,11 @@ remplissage_valeur_trigrames <- function(data) {
   matrice_trigrames = array(1e-10, dim = c(length(alphabets) , length(alphabets), length(alphabets)) , dimnames = list(alphabets, alphabets,alphabets ))
 
   for (compteur in 1:length(data[[1]]) ) {
-      lettre_anteprecedent = strsplit(data[compteur,1], NULL)[[1]][1]
-      lettre_precedente = strsplit(data[compteur,1], NULL)[[1]][2]
-      lettre_suivante = strsplit(data[compteur,1], NULL)[[1]][3]
-      matrice_trigrames[lettre_anteprecedent,lettre_precedente,lettre_suivante] = data[compteur,2]
+      trigrame = strsplit(data[[1]][compteur], NULL)[[1]]
+      lettre_anteprecedent = trigrame[1]
+      lettre_precedente = trigrame[2]
+      lettre_suivante = trigrame[3]
+      matrice_trigrames[lettre_anteprecedent,lettre_precedente,lettre_suivante] = data[[2]][compteur]
   }
   
   for (numero_ligne in 1:nrow(matrice_trigrames) ) {
@@ -181,6 +183,16 @@ calcul_qualite_log = function(texte,matrice_de_selection) {
 }
 
 
+
+calcul_qualite_multiplication = function(texte, matrice_de_selection){
+  qualite = 1
+  for(compteur in 1: (str_length(texte)-1) ){
+    qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte,compteur+1,compteur+1)]
+  }
+  return(qualite)
+}
+
+
 cryptage <- function(texte,alphabets) {
   alphabets_crypte = sample(alphabets)
   texte_crypte = c()
@@ -190,17 +202,6 @@ cryptage <- function(texte,alphabets) {
   }
   return(texte_crypte)
 }
-
-
-
-calcul_qualite_multiplication = function(texte, matrice_de_selection){
-  qualite = 1
-  for(compteur in 1:(str_length(texte)-1)){
-    qualite = qualite*matrice_de_selection[str_sub(texte,compteur,i),str_sub(texte,compteur+1,compteur+1)]
-  }
-  return(qualite)
-}
-
 
 
 ##permutation_alphabet = function(alphabets) 
@@ -297,21 +298,25 @@ frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_
 ###Aprentissage langue anglaise###
 
 ##bigrames sans espace
-#data = read.table('english_bigrams_1.txt', header = FALSE, sep = "", stringsAsFactors = FALSE, col.names = c("syllabe","valeur"), na.strings = "")
+data = read.table('english_bigrams_1.txt', header = FALSE, sep = "", stringsAsFactors = FALSE, col.names = c("syllabe","valeur"), na.strings = "")
+data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
+matrice_de_selection = remplissage_valeur_bigrames(data)
 
 ##bigrames avec espace
-data = read.table("EN-Letterpairs.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)]
-data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),]
+data = read.table("EN-Letterpairs.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)] #choisi les colonnes 8 et 2 du fichier 
+data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets
 names(data) = c("syllabe","valeur")
-row.names(data) <- NULL
+row.names(data) <- NULL  #reordonne les indices de la list apres supression de certaines lignes  
+data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
 matrice_de_selection = remplissage_valeur_bigrames(data)
 
 
 ##trigrames avec espace
-data = read.table("EN-Lettertriplets.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)]
-data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),]
+data = read.table("EN-Lettertriplets.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)]  #choisi les colonnes 8 et 2 du fichier 
+data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets
 names(data) = c("syllabe","valeur")
-row.names(data) <- NULL
+row.names(data) <- NULL   #reordonne les indices de la list apres supression de certaines lignes  
+data[][1] = lapply(data[][1], tolower)  #mets les lettres des lignes et colonnes en minuscule
 matrice_de_selection = remplissage_valeur_trigrames(data)
 
 

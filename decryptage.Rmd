@@ -180,7 +180,7 @@ calcule_frequence_trigrames <- function(texte, alphabets) {
 }
 
 
-calcul_qualite_multiplication = function(texte,matrice_de_selection) {
+calcul_qualite_multiplication = function(texte, matrice_de_selection) {
   qualite = 1
   
   if(is.matrix(matrice_de_selection)) {
@@ -237,7 +237,6 @@ permutation_des_lettres_par_unifome = function (alphabets) {
 
 
 permutation_des_lettres_par_frequence = function (alphabets_ordonnees) {
-  
   indice_lettre_1 = sample(length(alphabets_ordonnees), size = 1)
   indice_lettre_2 = sample(1:length(alphabets_ordonnees), size = 1, prob = alphabets_ordonnees/sum(alphabets_ordonnees))
   
@@ -287,18 +286,15 @@ decryptage_par_frequence_alphabets = function(texte_crypte,alphabets_matrice_sel
 
 
 
-algo_metropolis = function(texte_decrypte_etape_precedent,texte_decrypte_etape_suivant,calcul_qualite,matrice_de_selection) {
-   qualite_texte_precendent = calcul_qualite(texte_decrypte_etape_precedent, matrice_de_selection)
-   qualite_texte_suivant = calcul_qualite(texte_decrypte_etape_suivant, matrice_de_selection)
-   
-   if (qualite_texte_suivant >= qualite_texte_precendent) {
-        return(texte_decrypte_etape_suivant)
-     } else if (qualite_texte_precendent > 0 && runif(1) < qualite_texte_suivant/qualite_texte_precendent) { 
-        return(texte_decrypte_etape_suivant)
-     } else if ( runif(1) < exp(qualite_texte_suivant - qualite_texte_precendent) ) {
-        return(texte_decrypte_etape_suivant)
+algo_metropolis = function(texte_crypte,texte_decrypte,qualite_texte_crypte,qualite_texte_decrypte) {
+   if (qualite_texte_decrypte >= qualite_texte_crypte) {
+        return(texte_decrypte)
+     } else if (qualite_texte_crypte > 0 && runif(1) < qualite_texte_decrypte/qualite_texte_crypte) { 
+        return(texte_decrypte)
+     } else if ( runif(1) < exp(qualite_texte_decrypte - qualite_texte_crypte) ) {
+        return(texte_decrypte)
      } else {
-        return(texte_decrypte_etape_precedent)
+        return(texte_crypte)
    }
 }
 
@@ -397,18 +393,22 @@ texte_crypte = decryptage_par_frequence_alphabets(texte_crypte,names(alphabets_m
 
 
 nombre_iterations_max = 500000
+calcul_qualite = calcul_qualite_multiplication
 
 meilleurs_resultats = list("",0)
 for(iteration in 1:nombre_iterations_max){
   lettres_a_permuter = permutation_des_lettres_par_frequence(alphabets_matrice_selection_ordonnees)
   texte_decrypte = decryptage_texte_par_permutation_2_lettres(texte_crypte,lettres_a_permuter)
-  texte_crypte = algo_metropolis(texte_crypte, texte_decrypte, calcul_qualite_multiplication, matrice_de_selection)
+  
+  qualite_texte_crypte = calcul_qualite(texte_crypte, matrice_de_selection)
+  qualite_texte_decrypte = calcul_qualite(texte_decrypte, matrice_de_selection)
+   
+  texte_crypte = algo_metropolis(texte_crypte, texte_decrypte, qualite_texte_crypte, qualite_texte_decrypte)
   
   print(texte_crypte)
-  print(proba(texte_crypte,matrice_de_selection))
+  print(calcul_qualite(texte_crypte, matrice_de_selection))
   
-  qualite_texte_decrypte = calcul_qualite_multiplication(texte_crypte,matrice_de_selection)
-  if (qualite_texte_decrypte > meilleurs_resultat[[2]]) {
+  if (qualite_texte_decrypte > meilleurs_resultats[[2]]) {
     meilleurs_resultats = list(texte_crypte, qualite_texte_decrypte)
   }
   print(c("meilleurs_resultats = ", meilleurs_resultats[[1]], meilleurs_resultats[[2]]))

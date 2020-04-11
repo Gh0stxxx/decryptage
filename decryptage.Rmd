@@ -182,16 +182,17 @@ calcule_frequence_trigrames <- function(texte, alphabets) {
 
 calcul_qualite_multiplication = function(texte, matrice_de_selection) {
   qualite = 1
+  facteur = 4.055*log(str_length(texte))
   
   if(is.matrix(matrice_de_selection)) {
     for(compteur in 1:(str_length(texte)-1) ) {
-      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte,compteur+1,compteur+1)]
+      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte,compteur+1,compteur+1)]*facteur
     }
       
   } else {
       
     for(compteur in 1:(str_length(texte)-2) ) {
-      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2)]
+      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2)]*facteur
     }
   }
   
@@ -223,11 +224,10 @@ calcul_qualite_log = function(texte,matrice_de_selection) {
 
 permutation_des_lettres_par_unifome = function (alphabets) {
   
-  indice_lettre_1 = sample(length(alphabets), size = 1)
-  indice_lettre_2 = sample(length(alphabets), size = 1)
-  
-  lettre_1 = alphabets[indice_lettre_1]
-  lettre_2 = alphabets[indice_lettre_2]
+  indices_lettres = sample(length(alphabets), size = 2)
+
+  lettre_1 = alphabets[indices_lettres[1]]
+  lettre_2 = alphabets[indices_lettres[2]]
   
   lettres_a_permuter=c(lettre_1,lettre_2)
 
@@ -297,6 +297,26 @@ algo_metropolis = function(texte_crypte,texte_decrypte,qualite_texte_crypte,qual
         return(texte_crypte)
    }
 }
+
+
+
+selection_methode_decryptage = function(qualite_texte_crypte, texte_crypte, alphabets_matrice_selection_ordonnees){
+  
+  if (qualite_texte_crypte!= 0) {
+    lettres_a_permuter = permutation_des_lettres_par_frequence(alphabets_matrice_selection_ordonnees)
+    texte_decrypte = decryptage_texte_par_permutation_2_lettres(texte_crypte,lettres_a_permuter)
+    return(texte_decrypte)
+    
+  } else if (qualite_texte_crypte == 0) {
+    lettres_a_permuter = permutation_des_lettres_par_unifome(alphabets_matrice_selection_ordonnees)
+    texte_decrypte = decryptage_texte_par_permutation_2_lettres(texte_crypte,lettres_a_permuter)
+    return(texte_crypte)
+    
+  } else {
+    print("erreur in choix_texte_voisin")
+  }
+}
+
 
 
 
@@ -395,23 +415,36 @@ texte_crypte = decryptage_par_frequence_alphabets(texte_crypte,names(alphabets_m
 nombre_iterations_max = 500000
 calcul_qualite = calcul_qualite_multiplication
 
-meilleurs_resultats = list("",0)
+texte_crypte_initiale = texte_crypte
+qualite_texte_crypte_initiale = calcul_qualite(texte_crypte, matrice_de_selection)
+meilleurs_resultats = list("",-Inf)
 for(iteration in 1:nombre_iterations_max){
-  lettres_a_permuter = permutation_des_lettres_par_frequence(alphabets_matrice_selection_ordonnees)
-  texte_decrypte = decryptage_texte_par_permutation_2_lettres(texte_crypte,lettres_a_permuter)
   
   qualite_texte_crypte = calcul_qualite(texte_crypte, matrice_de_selection)
+  
+  texte_decrypte = selection_methode_decryptage(qualite_texte_crypte, texte_crypte, alphabets_matrice_selection_ordonnees)
+  
   qualite_texte_decrypte = calcul_qualite(texte_decrypte, matrice_de_selection)
-   
+  
   texte_crypte = algo_metropolis(texte_crypte, texte_decrypte, qualite_texte_crypte, qualite_texte_decrypte)
   
-  print(texte_crypte)
-  print(calcul_qualite(texte_crypte, matrice_de_selection))
+  qualite_texte_crypte = calcul_qualite(texte_crypte, matrice_de_selection)
   
-  if (qualite_texte_decrypte > meilleurs_resultats[[2]]) {
-    meilleurs_resultats = list(texte_crypte, qualite_texte_decrypte)
+  if(qualite_texte_decrypte > meilleurs_resultats[[2]]){
+    meilleurs_resultats = list(texte_crypte,qualite_texte_crypte)
   }
-  print(c("meilleurs_resultats = ", meilleurs_resultats[[1]], meilleurs_resultats[[2]]))
+  
+  if(iteration%%100 == 1){
+    cat("n = ", iteration ,"\n\n")
+    cat("Original : ", qualite_texte_crypte_initiale, "\n", texte_crypte_initiale ,"\n\n")
+    #cat("Crypte   : ","\n",texte_crypte_initial, "\n\n")
+    cat("Courant  : ",qualite_texte_crypte,"\n", texte_crypte,"\n\n")
+    cat("meilleur : ",meilleurs_resultats[[2]],"\n", meilleurs_resultats[[1]], "\n","\n\n\n")
+    
+    if( qualite_texte_crypte > qualite_texte_crypte_initiale ){
+      print("le texte n'est pas un minimum global \n")
+    }
+  }
 }
 
 texte_decrypte = meilleurs_resultats[[1]]

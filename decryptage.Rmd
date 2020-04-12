@@ -360,29 +360,36 @@ alphabets_corpus = extraction_alphabets(corpus)
   alphabets_corpus = selection_lettres_alphabets_corpus(corpus,alphabets_corpus,nombre_de_lettre_a_garder)
 
 matrice_de_selection = calcule_frequence_bigrames(corpus,alphabets_corpus)
-
-
+alphabets_matrice_selection_ordonnees = ordonner_alphabets_par_frequence(corpus,alphabets_corpus)
 
 
 ###Remplissage de matrice de selection de valeures connues###
 
-##Anglais : bigrames sans espace
+##Anglais : monogrammes avec espace
+data = read.table("EN-Letters.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)] #choisi les colonnes 8 et 2 du fichier 
+data = data[grepl("([A-Z]|\\s){1,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
+names(data) = c("syllabe","valeur")
+row.names(data) <- NULL  #reordonne les indices de la list apres supression de certaines lignes  
+data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
+alphabets_matrice_selection_ordonnees = unlist(data[][2])
+names(alphabets_matrice_selection_ordonnees) = unlist(data[][1])
+
+##Anglais : bigrammes sans espace
 data = read.table('english_bigrams_1.txt', header = FALSE, sep = "", stringsAsFactors = FALSE, col.names = c("syllabe","valeur"), na.strings = "")
 data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
 matrice_de_selection = remplissage_valeur_bigrames(data)
 
-##Anglais : bigrames avec espace
+##Anglais : bigrammes avec espace
 data = read.table("EN-Letterpairs.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)] #choisi les colonnes 8 et 2 du fichier 
-data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets
+data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
 names(data) = c("syllabe","valeur")
 row.names(data) <- NULL  #reordonne les indices de la list apres supression de certaines lignes  
 data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
 matrice_de_selection = remplissage_valeur_bigrames(data)
 
-
-##Anglais : trigrames avec espace
+##Anglais : trigrammes avec espace
 data = read.table("EN-Lettertriplets.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)]  #choisi les colonnes 8 et 2 du fichier 
-data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets
+data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
 names(data) = c("syllabe","valeur")
 row.names(data) <- NULL   #reordonne les indices de la list apres supression de certaines lignes  
 data[][1] = lapply(data[][1], tolower)  #mets les lettres des lignes et colonnes en minuscule
@@ -392,25 +399,19 @@ matrice_de_selection = remplissage_valeur_trigrames(data)
 ###Aprentissage langue francaise###
 
 
-
-
-
 ```
 
 
 
 ```{r cryptage, echo=FALSE}
-texte=".i am the and we for of this what then a now "
-texte_crypte = cryptage(texte, alphabets_corpus)
+texte_a_crypte = ".i am the and we for of this what then a now "
+texte_crypte = cryptage(texte_a_crypte, names(alphabets_matrice_selection_ordonnees))
 ```
 
 
 
 ```{r decrytage, echo=FALSE}
-alphabets_matrice_selection_ordonnees = ordonner_alphabets_par_frequence(corpus,alphabets)
-
 texte_crypte = decryptage_par_frequence_alphabets(texte_crypte,names(alphabets_matrice_selection_ordonnees))
-
 
 nombre_iterations_max = 500000
 calcul_qualite = calcul_qualite_multiplication
@@ -434,7 +435,7 @@ for(iteration in 1:nombre_iterations_max){
     meilleurs_resultats = list(texte_crypte,qualite_texte_crypte)
   }
   
-  if(iteration%%100 == 1){
+  if( iteration%%100 == 1 ){
     cat("n = ", iteration ,"\n\n")
     cat("Original : ", qualite_texte_crypte_initiale, "\n", texte_crypte_initiale ,"\n\n")
     #cat("Crypte   : ","\n",texte_crypte_initial, "\n\n")

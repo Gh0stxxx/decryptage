@@ -437,20 +437,20 @@ for(iteration in 1:nombre_iterations_max){
   
   texte_crypte = metropolis(texte_crypte, texte_decrypte, qualite_texte_crypte, qualite_texte_decrypte)
   
-  qualite_texte_crypte = calcul_qualite(texte_crypte, matrice_de_selection)
+  qualite_texte_decrypte = calcul_qualite(texte_crypte, matrice_de_selection)
   
   if(qualite_texte_decrypte > meilleurs_resultats[[2]]){
-    meilleurs_resultats = list(texte_crypte,qualite_texte_crypte)
+    meilleurs_resultats = list(texte_crypte,qualite_texte_decrypte)
   }
   
   if( iteration%%100 == 1 ){
     cat("n = ", iteration ,"\n\n")
     cat("Original : ", qualite_texte_crypte_initiale, "\n", texte_crypte_initiale ,"\n\n")
     #cat("Crypte   : ","\n",texte_crypte_initial, "\n\n")
-    cat("Courant  : ",qualite_texte_crypte,"\n", texte_crypte,"\n\n")
+    cat("Courant  : ",qualite_texte_decrypte,"\n", texte_crypte,"\n\n")
     cat("meilleur : ",meilleurs_resultats[[2]],"\n", meilleurs_resultats[[1]], "\n","\n\n\n")
     
-    if( qualite_texte_crypte > qualite_texte_crypte_initiale ){
+    if( qualite_texte_decrypte > qualite_texte_crypte_initiale ){
       print("le texte n'est pas un minimum global \n")
     }
   }

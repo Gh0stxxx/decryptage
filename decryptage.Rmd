@@ -443,7 +443,7 @@ for(iteration in 1:nombre_iterations_max){
     meilleurs_resultats = list(texte_crypte,qualite_texte_decrypte)
   }
   
-  if( iteration%%100 == 1 ){
+  if( iteration %% 100 == 1 ){
     cat("n = ", iteration ,"\n\n")
     cat("Original : ", qualite_texte_crypte_initiale, "\n", texte_crypte_initiale ,"\n\n")
     #cat("Crypte   : ","\n",texte_crypte_initial, "\n\n")

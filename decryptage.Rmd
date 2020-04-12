@@ -371,7 +371,7 @@ corpus = lecture_corpus(nom_fichier_corpus)
 alphabets_corpus = extraction_alphabets(corpus)
 
   ##Calcul matrice de selection d'un corpus uniquement avec les lettres les plus frquentes de l'alphabets##
-  nombre_de_lettre_a_garder = 40
+  nombre_de_lettre_a_garder = 40  #paramatre
   alphabets_corpus = selection_lettres_alphabets_corpus(corpus,alphabets_corpus,nombre_de_lettre_a_garder)
 
 matrice_de_selection = calcule_frequence_bigrames(corpus,alphabets_corpus)
@@ -412,8 +412,8 @@ alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
 
 
 ```{r cryptage, echo=FALSE}
-texte_a_crypte = ".i am the and we for of this what then a now "
-texte_crypte = cryptage(texte_a_crypte, names(alphabets_matrice_selection_ordonnees))
+texte_a_crypter = ".i am the and we for of this what then a now "
+texte_crypte = cryptage(texte_a_crypter, names(alphabets_matrice_selection_ordonnees))
 ```
 
 
@@ -421,8 +421,8 @@ texte_crypte = cryptage(texte_a_crypte, names(alphabets_matrice_selection_ordonn
 ```{r decrytage, echo=FALSE}
 texte_crypte = decryptage_par_frequence_alphabets(texte_crypte,names(alphabets_matrice_selection_ordonnees))
 
-nombre_iterations_max = 500000
-calcul_qualite = calcul_qualite_log
+nombre_iterations_max = 500000 #parametre
+calcul_qualite = calcul_qualite_log #paramatre
 
 texte_crypte_initiale = texte_crypte
 qualite_texte_crypte_initiale = calcul_qualite(texte_crypte, matrice_de_selection)

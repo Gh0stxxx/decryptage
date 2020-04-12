@@ -422,7 +422,7 @@ texte_crypte = cryptage(texte_a_crypter, names(alphabets_matrice_selection_ordon
 texte_crypte = decryptage_par_frequence_alphabets(texte_crypte,names(alphabets_matrice_selection_ordonnees))
 
 nombre_iterations_max = 500000 #parametre
-calcul_qualite = calcul_qualite_log #paramatre
+calcul_qualite = calcul_qualite_log #parametre
 
 texte_crypte_initiale = texte_crypte
 qualite_texte_crypte_initiale = calcul_qualite(texte_crypte, matrice_de_selection)

@@ -180,47 +180,6 @@ calcule_frequence_trigrames <- function(texte, alphabets) {
 }
 
 
-calcul_qualite_multiplication = function(texte, matrice_de_selection) {
-  qualite = 1
-  facteur = 4.055*log(str_length(texte))
-  
-  if(is.matrix(matrice_de_selection)) {
-    for(compteur in 1:(str_length(texte)-1) ) {
-      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte,compteur+1,compteur+1)]*facteur
-    }
-      
-  } else {
-      
-    for(compteur in 1:(str_length(texte)-2) ) {
-      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2)]*facteur
-    }
-  }
-  
-  return(qualite)
-}
-
-
-
-calcul_qualite_log = function(texte,matrice_de_selection) {
-  qualite = 0
-  
-  if(is.matrix(matrice_de_selection)) {
-    for(compteur in 1:(str_length(texte)-1) ) {
-      probabilite_bigrame = matrice_de_selection[ str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1) ]
-      qualite = qualite + log(probabilite_bigrame)
-    }
-      
-  } else {
-      
-    for(compteur in 1:(str_length(texte)-2) ) {
-      probabilite_trigrame = matrice_de_selection[ str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2) ]
-      qualite = qualite + log(probabilite_trigrame)
-    }
-  }
-  return(qualite)
-}
-
-
 
 permutation_des_lettres_par_unifome = function (alphabets) {
   
@@ -286,20 +245,6 @@ decryptage_par_frequence_alphabets = function(texte_crypte,alphabets_matrice_sel
 
 
 
-algo_metropolis = function(texte_crypte,texte_decrypte,qualite_texte_crypte,qualite_texte_decrypte) {
-   if (qualite_texte_decrypte >= qualite_texte_crypte) {
-        return(texte_decrypte)
-     } else if (qualite_texte_crypte > 0 && runif(1) < qualite_texte_decrypte/qualite_texte_crypte) { 
-        return(texte_decrypte)
-     } else if ( runif(1) < exp(qualite_texte_decrypte - qualite_texte_crypte) ) {
-        return(texte_decrypte)
-     } else {
-        return(texte_crypte)
-   }
-}
-
-
-
 selection_methode_decryptage = function(qualite_texte_crypte, texte_crypte, alphabets_matrice_selection_ordonnees){
   
   if (qualite_texte_crypte!= 0) {
@@ -317,6 +262,62 @@ selection_methode_decryptage = function(qualite_texte_crypte, texte_crypte, alph
   }
 }
 
+
+
+
+calcul_qualite_multiplication = function(texte, matrice_de_selection) {
+  qualite = 1
+  facteur = 4.055*log(str_length(texte))
+  
+  if(is.matrix(matrice_de_selection)) {
+    for(compteur in 1:(str_length(texte)-1) ) {
+      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte,compteur+1,compteur+1)]*facteur
+    }
+      
+  } else {
+      
+    for(compteur in 1:(str_length(texte)-2) ) {
+      qualite = qualite*matrice_de_selection[str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2)]*facteur
+    }
+  }
+  
+  return(qualite)
+}
+
+
+
+calcul_qualite_log = function(texte,matrice_de_selection) {
+  qualite = 0
+  
+  if(is.matrix(matrice_de_selection)) {
+    for(compteur in 1:(str_length(texte)-1) ) {
+      probabilite_bigrame = matrice_de_selection[ str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1) ]
+      qualite = qualite + log(probabilite_bigrame)
+    }
+      
+  } else {
+      
+    for(compteur in 1:(str_length(texte)-2) ) {
+      probabilite_trigrame = matrice_de_selection[ str_sub(texte,compteur,compteur) , str_sub(texte, compteur+1, compteur+1), str_sub(texte, compteur+2, compteur+2) ]
+      qualite = qualite + log(probabilite_trigrame)
+    }
+  }
+  return(qualite)
+}
+
+
+
+metropolis = function(texte_crypte,texte_decrypte,qualite_texte_crypte,qualite_texte_decrypte) {
+   if (qualite_texte_decrypte >= qualite_texte_crypte) {
+        return(texte_decrypte)
+     } else if (qualite_texte_crypte > 0 && runif(1) < qualite_texte_decrypte/qualite_texte_crypte) { 
+        return(texte_decrypte)
+     } else if ( runif(1) < exp(qualite_texte_decrypte - qualite_texte_crypte) ) {
+        return(texte_decrypte)
+     } else {
+        return(texte_crypte)
+   }
+}
 
 
 
@@ -343,6 +344,20 @@ selection_lettres_alphabets_corpus = function(corpus,alphabets_corpus_initiale,n
   alphabets_corpus = extraction_alphabets(corpus)
   return(alphabets_corpus)
 }
+
+
+
+ecriture_alphabets_ordonnee_anglais = function() {
+  data = read.table("EN-Letters.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)] #choisi les colonnes 8 et 2 du fichier 
+  data = data[grepl("([A-Z]|\\s){1,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
+  names(data) = c("syllabe","valeur")
+  row.names(data) <- NULL  #reordonne les indices de la list apres supression de certaines lignes  
+  data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
+  alphabets_ordonnee_anglais = unlist(data[][2])
+  names(alphabets_ordonnee_anglais) = unlist(data[][1])
+  return(alphabets_ordonnee_anglais)
+}
+
 ```
 
 ## Embedded Application
@@ -365,20 +380,12 @@ alphabets_matrice_selection_ordonnees = ordonner_alphabets_par_frequence(corpus,
 
 ###Remplissage de matrice de selection de valeures connues###
 
-##Anglais : monogrammes avec espace
-data = read.table("EN-Letters.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)] #choisi les colonnes 8 et 2 du fichier 
-data = data[grepl("([A-Z]|\\s){1,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
-names(data) = c("syllabe","valeur")
-row.names(data) <- NULL  #reordonne les indices de la list apres supression de certaines lignes  
-data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
-alphabets_matrice_selection_ordonnees = unlist(data[][2])
-names(alphabets_matrice_selection_ordonnees) = unlist(data[][1])
-
 ##Anglais : bigrammes sans espace
 data = read.table('english_bigrams_1.txt', header = FALSE, sep = "", stringsAsFactors = FALSE, col.names = c("syllabe","valeur"), na.strings = "")
 data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
 matrice_de_selection = remplissage_valeur_bigrames(data)
-
+alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
+  
 ##Anglais : bigrammes avec espace
 data = read.table("EN-Letterpairs.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)] #choisi les colonnes 8 et 2 du fichier 
 data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
@@ -386,6 +393,7 @@ names(data) = c("syllabe","valeur")
 row.names(data) <- NULL  #reordonne les indices de la list apres supression de certaines lignes  
 data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
 matrice_de_selection = remplissage_valeur_bigrames(data)
+alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
 
 ##Anglais : trigrammes avec espace
 data = read.table("EN-Lettertriplets.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)]  #choisi les colonnes 8 et 2 du fichier 
@@ -394,7 +402,7 @@ names(data) = c("syllabe","valeur")
 row.names(data) <- NULL   #reordonne les indices de la list apres supression de certaines lignes  
 data[][1] = lapply(data[][1], tolower)  #mets les lettres des lignes et colonnes en minuscule
 matrice_de_selection = remplissage_valeur_trigrames(data)
-
+alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
 
 ###Aprentissage langue francaise###
 
@@ -414,7 +422,7 @@ texte_crypte = cryptage(texte_a_crypte, names(alphabets_matrice_selection_ordonn
 texte_crypte = decryptage_par_frequence_alphabets(texte_crypte,names(alphabets_matrice_selection_ordonnees))
 
 nombre_iterations_max = 500000
-calcul_qualite = calcul_qualite_multiplication
+calcul_qualite = calcul_qualite_log
 
 texte_crypte_initiale = texte_crypte
 qualite_texte_crypte_initiale = calcul_qualite(texte_crypte, matrice_de_selection)
@@ -427,7 +435,7 @@ for(iteration in 1:nombre_iterations_max){
   
   qualite_texte_decrypte = calcul_qualite(texte_decrypte, matrice_de_selection)
   
-  texte_crypte = algo_metropolis(texte_crypte, texte_decrypte, qualite_texte_crypte, qualite_texte_decrypte)
+  texte_crypte = metropolis(texte_crypte, texte_decrypte, qualite_texte_crypte, qualite_texte_decrypte)
   
   qualite_texte_crypte = calcul_qualite(texte_crypte, matrice_de_selection)
   

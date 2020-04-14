@@ -13,7 +13,9 @@ rm(list=ls())
 library(stringr)
 
 ### Paramétres ###
-nom_fichier_corpus = 'wonderland.txt'
+nom_fichier_corpus = 'input.txt'
+alphabet_anglais=c("a",)
+
 ```
 
 ## Inputs and Outputs
@@ -128,7 +130,7 @@ calcule_frequence_bigrames <- function(texte, alphabets) {
   
   matrice_bigrames = matrix(frequence_bigrames, nrow = length(alphabets), byrow = TRUE, dimnames = list(alphabets, alphabets) )
   
-  valeur_minimal = unique(sort(matrice_bigrames))[2]*1e-3
+  valeur_minimal = unique(sort(matrice_bigrames))[2]*1e-2
   matrice_bigrames[matrice_bigrames == 0] <- valeur_minimal
   
   for (numero_ligne in 1:nrow(matrice_bigrames) ) {
@@ -141,16 +143,16 @@ calcule_frequence_bigrames <- function(texte, alphabets) {
 
 calcule_frequence_trigrames <- function(texte, alphabets) {
   frequence_trigrames = c()
-  
-  for (compteur_anteprecendent in 1: length(alphabets) ) {
-    lettre_anteprecedente = alphabets[compteur_anteprecendent]
+  n = length(alphabets)
+  for (compteur_anteprecendent in 1:n ) {
+    lettre_anteprecedente = alphabets[compteur_anteprecendent] #commentaire
     occurences_lettre_anteprecedente = str_extract_all(texte,str_c(traitement_regex_caracteres_speciaux(lettre_anteprecedente),'..'))[[1]]
     
-    for (compteur_precedent in 1: length(alphabets) ) {
+    for (compteur_precedent in 1:n ) {
       lettre_precedente = alphabets[compteur_precedent]
       occurences_lettre_precedente = occurences_lettre_anteprecedente[grepl(str_c('.',traitement_regex_caracteres_speciaux(lettre_precedente),'.'), occurences_lettre_anteprecedente, perl = TRUE)]
       
-      for (compteur_suivant in 1:length(alphabets)) {
+      for (compteur_suivant in 1:n) {
         lettre_suivante = alphabets[compteur_suivant]
         trigrame = str_c(lettre_anteprecedente,lettre_precedente, lettre_suivante)
         cardinal_trigrame = sum(occurences_lettre_precedente == trigrame)
@@ -167,7 +169,7 @@ calcule_frequence_trigrames <- function(texte, alphabets) {
   
   matrice_trigrames = array(frequence_trigrames, dim = c(length(alphabets) , length(alphabets), length(alphabets)) , dimnames = list(alphabets, alphabets, alphabets) )
   
-  valeur_minimal = unique(sort(matrice_trigrames))[2]*1e-3
+  valeur_minimal = unique(sort(matrice_trigrames))[2]*1e-2
   matrice_trigrames[matrice_trigrames == 0] <- valeur_minimal
   
   for (numero_ligne in 1:nrow(matrice_trigrames) ) {
@@ -209,20 +211,20 @@ permutation_des_lettres_par_frequence = function (alphabets_ordonnees) {
 
 
 
-decryptage_texte_par_permutation_2_lettres = function(texte,lettres_a_permuter){
+texte.voisin = function(texte,lettres_a_permuter){ #texte_voisin
   texte_decrypte = ''
   for(i in 1:str_length(texte)){
     if(str_sub(texte,i,i) == lettres_a_permuter[1]) {
-        texte_decrypte = str_c(texte_decrypte,lettres_a_permuter[2])
+        texte_decrypte = str_c(texte_voisin,lettres_a_permuter[2])
         
      } else if (str_sub(texte,i,i) == lettres_a_permuter[2]) {
-        texte_decrypte = str_c(texte_decrypte, lettres_a_permuter[1])
+        texte_decrypte = str_c(texte_voisin, lettres_a_permuter[1])
         
      } else {
-        texte_decrypte = str_c(texte_decrypte,str_sub(texte,i,i))
+        texte_decrypte = str_c(texte_voisin,str_sub(texte,i,i))
     }
   }
-  return(texte_decrypte)
+  return(texte_voisin)
 }
 
 
@@ -245,7 +247,7 @@ decryptage_par_frequence_alphabets = function(texte_crypte,alphabets_matrice_sel
 
 
 
-selection_methode_decryptage = function(qualite_texte_crypte, texte_crypte, alphabets_matrice_selection_ordonnees){
+choix_texte_voisin = function(qualite_texte_crypte, texte_crypte, alphabets_matrice_selection_ordonnees){ #changer le nom de la fonction
   
   if (qualite_texte_crypte!= 0) {
     lettres_a_permuter = permutation_des_lettres_par_frequence(alphabets_matrice_selection_ordonnees)
@@ -312,7 +314,7 @@ metropolis = function(texte_crypte,texte_decrypte,qualite_texte_crypte,qualite_t
         return(texte_decrypte)
      } else if (qualite_texte_crypte > 0 && runif(1) < qualite_texte_decrypte/qualite_texte_crypte) { 
         return(texte_decrypte)
-     } else if ( runif(1) < exp(qualite_texte_decrypte - qualite_texte_crypte) ) {
+     } else if (qualite_texte_crypte < 0 && runif(1) < exp(qualite_texte_decrypte - qualite_texte_crypte) ) {
         return(texte_decrypte)
      } else {
         return(texte_crypte)
@@ -333,17 +335,6 @@ cryptage <- function(texte,alphabets) {
   return(texte_crypte)
 }
 
-
-
-selection_lettres_alphabets_corpus = function(corpus,alphabets_corpus_initiale,nombre_de_lettre_a_garder) {
-  alphabets_corpus_ordonnees = names(ordonner_alphabets_par_frequence(corpus,alphabets_corpus_initiale))
-  
-  for (compteur in nombre_de_lettre_a_garder:length(alphabets_corpus_ordonnees) ){
-    corpus <- gsub(traitement_regex_caracteres_speciaux(alphabets_corpus_ordonnees[compteur]),"", corpus)
-  }
-  alphabets_corpus = extraction_alphabets(corpus)
-  return(alphabets_corpus)
-}
 
 
 
@@ -370,10 +361,6 @@ It's also possible to embed an entire Shiny application within an R Markdown doc
 corpus = lecture_corpus(nom_fichier_corpus)
 alphabets_corpus = extraction_alphabets(corpus)
 
-  ##Calcul matrice de selection d'un corpus uniquement avec les lettres les plus frquentes de l'alphabets##
-  nombre_de_lettre_a_garder = 40  #paramatre
-  alphabets_corpus = selection_lettres_alphabets_corpus(corpus,alphabets_corpus,nombre_de_lettre_a_garder)
-
 matrice_de_selection = calcule_frequence_bigrames(corpus,alphabets_corpus)
 alphabets_matrice_selection_ordonnees = ordonner_alphabets_par_frequence(corpus,alphabets_corpus)
 
@@ -381,28 +368,28 @@ alphabets_matrice_selection_ordonnees = ordonner_alphabets_par_frequence(corpus,
 ###Remplissage de matrice de selection de valeures connues###
 
 ##Anglais : bigrammes sans espace
-data = read.table('english_bigrams_1.txt', header = FALSE, sep = "", stringsAsFactors = FALSE, col.names = c("syllabe","valeur"), na.strings = "")
-data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
-matrice_de_selection = remplissage_valeur_bigrames(data)
-alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
+#data = read.table('english_bigrams_1.txt', header = FALSE, sep = "", stringsAsFactors = FALSE, col.names = c("syllabe","valeur"), na.strings = "")
+#data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
+#matrice_de_selection = remplissage_valeur_bigrames(data)
+#alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
   
 ##Anglais : bigrammes avec espace
-data = read.table("EN-Letterpairs.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)] #choisi les colonnes 8 et 2 du fichier 
-data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
-names(data) = c("syllabe","valeur")
-row.names(data) <- NULL  #reordonne les indices de la list apres supression de certaines lignes  
-data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
-matrice_de_selection = remplissage_valeur_bigrames(data)
-alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
+#data = read.table("EN-Letterpairs.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)] #choisi les colonnes 8 et 2 du fichier 
+#data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
+#names(data) = c("syllabe","valeur")
+#row.names(data) <- NULL  #reordonne les indices de la list apres supression de certaines lignes  
+#data[][1] = lapply(data[][1], tolower) #mets les lettres des lignes et colonnes en minuscule
+#matrice_de_selection = remplissage_valeur_bigrames(data)
+#alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
 
 ##Anglais : trigrammes avec espace
-data = read.table("EN-Lettertriplets.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)]  #choisi les colonnes 8 et 2 du fichier 
-data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
-names(data) = c("syllabe","valeur")
-row.names(data) <- NULL   #reordonne les indices de la list apres supression de certaines lignes  
-data[][1] = lapply(data[][1], tolower)  #mets les lettres des lignes et colonnes en minuscule
-matrice_de_selection = remplissage_valeur_trigrames(data)
-alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
+#data = read.table("EN-Lettertriplets.txt", header = FALSE, sep = '\t', stringsAsFactors = FALSE, na.strings = "", fill = TRUE, skip = 1)[,c(8,2)]  #choisi les colonnes 8 et 2 du fichier 
+#data = data[grepl("([A-Z]|\\s){2,}", data[,1], perl = TRUE),] #Ne prends que les lettres entre A et Z de l'alphabets et l'espace
+#names(data) = c("syllabe","valeur")
+#row.names(data) <- NULL   #reordonne les indices de la list apres supression de certaines lignes  
+#data[][1] = lapply(data[][1], tolower)  #mets les lettres des lignes et colonnes en minuscule
+#matrice_de_selection = remplissage_valeur_trigrames(data)
+#alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
 
 ###Aprentissage langue francaise###
 
@@ -412,7 +399,7 @@ alphabets_matrice_selection_ordonnees = ecriture_alphabets_ordonnee_anglais()
 
 
 ```{r cryptage, echo=FALSE}
-texte_a_crypter = ".i am the and we for of this what then a now "
+texte_a_crypter = str_sub(corpus,200,700)
 texte_crypte = cryptage(texte_a_crypter, names(alphabets_matrice_selection_ordonnees))
 ```
 
@@ -445,7 +432,7 @@ for(iteration in 1:nombre_iterations_max){
   
   if( iteration %% 100 == 1 ){
     cat("n = ", iteration ,"\n\n")
-    cat("Original : ", qualite_texte_crypte_initiale, "\n", texte_crypte_initiale ,"\n\n")
+    cat("Original : ", qualite_texte_crypte_initiale, "\n", texte_a_crypter ,"\n\n")
     #cat("Crypte   : ","\n",texte_crypte_initial, "\n\n")
     cat("Courant  : ",qualite_texte_decrypte,"\n", texte_crypte,"\n\n")
     cat("meilleur : ",meilleurs_resultats[[2]],"\n", meilleurs_resultats[[1]], "\n","\n\n\n")

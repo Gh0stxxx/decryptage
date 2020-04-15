@@ -18,7 +18,7 @@ library(stringr)
 
 
 ### ParamÃ¨tres ###
-nom_fichier_texte_apprentissage = 'wonderlandmodifie.txt'
+nom_fichier_texte_apprentissage = 'input.txt'
 ```
 
 This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. 
@@ -30,6 +30,30 @@ To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authorin
 You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
 
 ```{r fonctions, echo=FALSE}
+
+
+ui <- fluidPage(
+  inputPanel(
+    textInput("caption", "Caption", "Data Summary"),
+    textInput("caption2", "Caption2", "Data Summary"),
+  verbatimTextOutput("value"),
+    selectInput(inputId = "namemodel", "Model:", choices=c("lin","affine", "cube", "hyperbolic", "fourier"),
+                selected="lin", width = 600),
+    sliderInput("n", "Number of points in the discretization:", min=10, max=1000, value=50, step= 10),
+     actionButton("go", "Go!")
+   ),
+  mainPanel(
+    tabsetPanel(type = "tabs",
+                tabPanel("Estimation", textOutput("sortie")),
+                tabPanel("Sample of paths", textOutput("best"))
+    )
+  )
+)
+
+
+server <- function(input, output) {
+
+
 lecture_texte_apprentissage <- function(nom_fichier_texte_apprentissage) {
   texte_apprentissage <- toString(readLines(nom_fichier_texte_apprentissage))
   texte_apprentissage <- str_to_lower(texte_apprentissage)
@@ -209,13 +233,12 @@ return(textevoisin(texte_crypte,frequences_lettres))
   else(print("erreur in choix_texte_voisin"))
   
 }
-```
 
-## Embedded Application
 
-It's also possible to embed an entire Shiny application within an R Markdown document using the `shinyAppDir` function. This example embeds a Shiny application located in another directory:
 
-```{r apprentissage, echo=FALSE}
+##apprentissage
+
+
 texte_apprentissage = lecture_texte_apprentissage(nom_fichier_texte_apprentissage)
 alphabets = extraction_alphabets_du_texte(texte_apprentissage)
 matrice_apprentissage = calcule_probabilite_matrice_apprentissage(texte_apprentissage,alphabets)
@@ -230,12 +253,10 @@ lettres_ordonnees = traitement_des_caracteres_speciaux(lettres_ordonnees)
 #matrice_apprentissage = calcule_probabilite_matrice_apprentissage(texte_apprentissage,alphabets)
 #frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
 
-```
+##Execution
+decryptage=eventReactive(c(input$go,input$caption,matrice_apprentissage,alphabets,frequencelettres,textecrypte2,choix_texte_voisin,proba,textevoisin,textevoisin2,Q),{
 
-
-
-```{r execution, echo=FALSE}
-texte=str_sub(texte_apprentissage,500,1000)
+texte=input$caption
 texte=str_to_lower(texte)
 proba_texte=proba(texte,matrice_apprentissage)
 texte_crypte = cryptage(texte,alphabets)
@@ -243,9 +264,14 @@ texte_crypte_initial=texte_crypte
 frequences_lettres_cryptees=frequencelettres(texte_crypte,extraction_alphabets_du_texte)
 texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cryptees)
 
+
+
+  
+  
 best=list("",0)
-t=0
-for(l in 1:2000){
+n_iterations_metropolis=20000
+for(l in 1:n_iterations_metropolis){
+  cat(l,"/",n_iterations_metropolis,"\n")
   texte_voisin=choix_texte_voisin(texte_crypte,frequences_lettres,alphabets,proba,matrice_apprentissage,textevoisin,textevoisin2)
   
 texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_lettres)
@@ -254,17 +280,25 @@ texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_
 p=proba(texte_crypte,matrice_apprentissage)
 if(p>best[[2]]){best=list(texte_crypte,p)}
 
-if(l%%100==1){
-cat("n = ",l,"\n\n")
-cat("Original : ",proba_texte,"    ")
-if(p>proba_texte){cat("le texte n'est pas un extremum global")}
-cat("\n",texte,"\n\n")
-# cat("Crypte   : ","\n",texte_crypte_initial,"\n\n")
-cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
-cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
 
 }
+
+
+return(best[[1]])
+})
+
+
+
+output$sortie <- renderText({
+    paste("ok ", decryptage())
+  })
+
 }
+
+
+
+# Run the application 
+shinyApp(ui = ui, server = server,   options = list(width= 900, height = 800))
 ```
 
 

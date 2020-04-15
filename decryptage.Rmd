@@ -21,6 +21,20 @@ library(stringr)
 nom_fichier_texte_apprentissage = 'input.txt'
 ```
 
+```{r eruptions, echo=FALSE}
+ui<-fluidPage(
+  inputPanel(
+  selectInput("n_iterations", label = "Number of iterations:",
+              choices = c(10, 20, 35, 50), selected = 20),
+  
+  sliderInput("bw_adjust", label = "Bandwidth adjustment:",
+              min = 0.2, max = 2, value = 1, step = 0.2),
+  textInput("caption", "Caption", "Data Summary"),
+  verbatimTextOutput("value")
+),
+)
+```
+
 This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. 
 
 To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authoring_shiny.html).
@@ -245,7 +259,7 @@ texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cry
 
 best=list("",0)
 t=0
-for(l in 1:1000000){
+for(l in 1:2000){
   texte_voisin=choix_texte_voisin(texte_crypte,frequences_lettres,alphabets,proba,matrice_apprentissage,textevoisin,textevoisin2)
   
 texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_lettres)

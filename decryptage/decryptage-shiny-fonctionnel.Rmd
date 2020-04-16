@@ -34,35 +34,36 @@ You can embed Shiny inputs and outputs in your document. Outputs are automatical
 ```{r ui, echo=FALSE}
 ui <- fluidPage(
   rclipboardSetup(),
-    inputPanel(
-        radioButtons("radio", h3("Language"),
-                     choices = list("Anglais bigramme" = 1, "Anglais Trigramme" = 2,
-                                    "Francais trigramme" = 3),selected = 1),
-        fileInput("file", h3("Corpus"))
-       
-    ),
+  
+  
   inputPanel(
-        textAreaInput("texte_a_crypter", "Texte à crypter","Enter your text here : you know caius marcius is chief enemy to the people. all: we know't, we know't. first citizen: let us kill him, and we'll have corn at our own price. is't a verdict? all: no more talking on't let it be done: away, away! second citizen: one word good citizens.",width = 750, height = 200),
-        actionButton("go_cryptage", "Crypter !"),
-        uiOutput("clip")
-    ),
-   tabsetPanel(type = "tabs",
-                tabPanel("texte crypté", verbatimTextOutput("texte_crypte"))
-   ),
-  inputPanel(
-        textAreaInput("texte_a_decrypter", "Texte à decrypter","'yv'mqfibmqv'uvq,'m'qxqfibqjyiaqpksbtq!kmpsbtqstqp,s'$q'y'!fqviqv,'qn'in&'lqk&&xqa'qjyiahv;qa'qjyiahvlq$smtvqpsvs3'yxq&'vqbtqjs&&q,s!;qkygqa'h&&q,kd'qpimyqkvqibmqiayqnmsp'lqsthvqkqd'mgspvwqk&&xqyiq!im'qvk&jsy:qiyhvq&'vqsvq-'qgiy'xqkakf;qkakf qt'piygqpsvs3'yxqiy'qaimgq:iigqpsvs3'ytl",width = 750, height = 200),
+        textAreaInput("texte_a_crypter", "Texte à crypter","You know caius marcius is chief enemy to the people. all: we know't, we know't. first citizen: let us kill him, and we'll have corn at our own price. is't a verdict? all: no more talking on't let it be done: away, away! second citizen: one word good citizens.",width = 885, height = 200)
         
-        actionButton("go_decryptage", "Dérypter !"),
-         sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=10000, value=100, step= 500)
+    ),
+  
+   inputPanel(
+  actionButton("go_cryptage", "Crypter !"),
+        uiOutput("clip")
+),
+
+   tabsetPanel(type = "tabs",
+               tabPanel("texte crypté", div(div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
+               ),
+  inputPanel(
+        textAreaInput("texte_a_decrypter", "Texte à decrypter","'yv'mqfibmqv'uvq,'m'qxqfibqjyiaqpksbtq!kmpsbtqstqp,s'$q'y'!fqviqv,'qn'in&'lqk&&xqa'qjyiahv;qa'qjyiahvlq$smtvqpsvs3'yxq&'vqbtqjs&&q,s!;qkygqa'h&&q,kd'qpimyqkvqibmqiayqnmsp'lqsthvqkqd'mgspvwqk&&xqyiq!im'qvk&jsy:qiyhvq&'vqsvq-'qgiy'xqkakf;qkakf qt'piygqpsvs3'yxqiy'qaimgq:iigqpsvs3'ytl",width = 885, height = 200)),
+  inputPanel(
+         sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=10000, value=500, step= 500),
+        actionButton("go_decryptage", "Dérypter !")
         
     ),
     
     tabsetPanel(type = "tabs",
-                tabPanel("texte decrypté", verbatimTextOutput("texte_decrypte")),
-                tabPanel("texte courant", verbatimTextOutput("texte_courant"))
-              
-    )
+                tabPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
+        ),
 
+tabsetPanel(type = "tabs",
+                tabPanel("Historique", verbatimTextOutput("texte_courant",placeholder = TRUE))
+        )
 
 )
 ```
@@ -221,14 +222,11 @@ frequence_lettres=c(numeric(length(alphabets)))
     }
   names(frequence_lettres) = alphabets
   frequence_lettres=sort(frequence_lettres,decreasing = TRUE)
-  print(frequence_lettres)
 }
 
 textecrypte2=function(texte_crypte, frequence_lettres,frequence_lettres_cryptees){
   lettres_cryptees_ordonnees=names(frequence_lettres_cryptees)
-  print(lettres_cryptees_ordonnees)
   lettres_ordonnees=names(frequence_lettres)
-  print(lettres_ordonnees)
   texte_crypte2 = ''
   for(i in 1:str_length(texte_crypte)){
     for(j in 1:length(lettres_cryptees_ordonnees)){
@@ -260,7 +258,6 @@ texte_apprentissage = lecture_texte_apprentissage(nom_fichier_texte_apprentissag
 alphabets = extraction_alphabets_du_texte(texte_apprentissage)
 matrice_apprentissage = calcule_probabilite_matrice_apprentissage(texte_apprentissage,alphabets)
 frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
-k = 6
 lettres_ordonnees=names(frequences_lettres)
 lettres_ordonnees = traitement_des_caracteres_speciaux(lettres_ordonnees)
 #for(i in (length(lettres_ordonnees)-k):length(lettres_ordonnees)){
@@ -270,6 +267,7 @@ lettres_ordonnees = traitement_des_caracteres_speciaux(lettres_ordonnees)
 #matrice_apprentissage = calcule_probabilite_matrice_apprentissage(texte_apprentissage,alphabets)
 #frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
 }
+
 ##Execution
 cryptage_reactive=eventReactive(c(input$go_cryptage),{
 texte=input$texte_a_crypter
@@ -283,7 +281,7 @@ texte_crypte
 
 
 decryptage_reactive=eventReactive(c(input$go_decryptage),{
-
+v=c()
 texte_crypte=input$texte_a_decrypter
 texte_crypte=str_to_lower(texte_crypte)
 texte_crypte_initial=texte_crypte
@@ -292,31 +290,37 @@ texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cry
 best=list("",0)
 n_iterations_metropolis=input$n_iterations_metropolis
 for(l in 1:n_iterations_metropolis){
-  cat(l,"/",n_iterations_metropolis,"\n")
+  
   texte_voisin=choix_texte_voisin(texte_crypte,frequences_lettres,alphabets,proba,matrice_apprentissage,textevoisin,textevoisin2)
 texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_lettres)
 p=proba(texte_crypte,matrice_apprentissage)
 if(p>best[[2]]){best=list(texte_crypte,p)}
-if(l%%1000==0){
-  
-output$texte_courant <- renderText({
-  paste("n= ",l," texte courant : ","   \n\n", texte_crypte)
+if(l%%100==0){
+cat("n = ",l,"\n\n")
+cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
+cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
 
-  })
+
+  v=c(v,texte_crypte)
 }
 }
-best[[1]]
+return(best[[1]])
+
 }) #end decryptage_reactive
 
 
 
+  output$texte_courant <- renderPrint(decryptage_reactive())
+   
+
+
 output$texte_crypte <- renderText({
-    paste("texte crypté : \n\n", cryptage_reactive())
+    cryptage_reactive()
   })
 
 
  output$texte_decrypte <- renderText({
-    paste("texte decrypté : \n\n", decryptage_reactive())
+    decryptage_reactive()[length(decryptage_reactive())]
    
   })
 
@@ -324,6 +328,9 @@ output$texte_crypte <- renderText({
 output$clip <- renderUI({
     rclipButton("clipbtn", "Copier", cryptage_reactive(), icon("clipboard"))
   })
+
+
+
 
 
 } #end server

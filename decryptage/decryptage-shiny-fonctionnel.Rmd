@@ -1,5 +1,5 @@
 ---
-title: "projet2"
+title: "Projet MCMC et dechiffrage \n BARBEREAU Pierre-Yves et BOODOO Fadil"
 runtime: shiny
 output: html_document
 ---
@@ -20,24 +20,22 @@ load("environnement.RData")
 
 
 ### ParamÃ¨tres ###
-nom_fichier_texte_apprentissage = 'input.txt'
 ```
 
-This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. 
 
-To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authoring_shiny.html).
 
-## Inputs and Outputs
 
-You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
+
+
 
 ```{r ui, echo=FALSE}
 ui <- fluidPage(
-  rclipboardSetup(),
   
+  rclipboardSetup(),
+  h3("Cryptage"),
   
   inputPanel(
-        textAreaInput("texte_a_crypter", "Texte à crypter","You know caius marcius is chief enemy to the people. all: we know't, we know't. first citizen: let us kill him, and we'll have corn at our own price. is't a verdict? all: no more talking on't let it be done: away, away! second citizen: one word good citizens.",width = 885, height = 200)
+        textAreaInput("texte_a_crypter", "Texte à crypter","We are accounted poor citizens, the patricians good. What authority surfeits on would relieve us: if they would yield us but the superfluity, while it were wholesome, we might guess they relieved us humanely; but they think we are too dear: the leanness that afflicts us, the object of our misery, is as an inventory to particularise their abundance; our sufferance is a gain to them Let us revenge this with our pikes, ere we become rakes: for the gods know I speak this in hunger for bread, not in thirst for revenge.",width = 885, height = 200)
         
     ),
   
@@ -49,8 +47,9 @@ ui <- fluidPage(
    tabsetPanel(type = "tabs",
                tabPanel("texte crypté", div(div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
                ),
+h3("Decryptage"),
   inputPanel(
-        textAreaInput("texte_a_decrypter", "Texte à decrypter","'yv'mqfibmqv'uvq,'m'qxqfibqjyiaqpksbtq!kmpsbtqstqp,s'$q'y'!fqviqv,'qn'in&'lqk&&xqa'qjyiahv;qa'qjyiahvlq$smtvqpsvs3'yxq&'vqbtqjs&&q,s!;qkygqa'h&&q,kd'qpimyqkvqibmqiayqnmsp'lqsthvqkqd'mgspvwqk&&xqyiq!im'qvk&jsy:qiyhvq&'vqsvq-'qgiy'xqkakf;qkakf qt'piygqpsvs3'yxqiy'qaimgq:iigqpsvs3'ytl",width = 885, height = 200)),
+        textAreaInput("texte_a_decrypter", "Texte à decrypter","-xy!rxy!zzmaicx3ybmmryzfcfwxiekyc?xyb!crfzf!iey:mm3$y-?!cy!ac?mrfc&year;xfceymiy-mas3yrxsfx'xyaeuyf;yc?x&y-mas3y&fxs3yaeyoacyc?xyeabxr;safc&ky-?fsxyfcy-xrxy-?msxem xky-xy f:?cy:axeeyc?x&yrxsfx'x3yaey?a !ixs&gyoacyc?x&yc?fihy-xy!rxycmmy3x!ruyc?xysx!iixeeyc?!cy!;;sfzceyaekyc?xymodxzcym;ymary fexr&kyfey!ey!iyfi'xicmr&ycmyb!rcfzas!rfexyc?xfry!oai3!izxgymaryea;;xr!izxyfey!y:!fiycmyc?x ysxcyaeyrx'xi:xyc?fey-fc?ymarybfhxekyxrxy-xyoxzm xyr!hxeuy;mryc?xy:m3eyhim-yfyebx!hyc?feyfiy?ai:xry;mryorx!3kyimcyfiyc?frecy;mryrx'xi:x$",width = 885, height = 200)),
   inputPanel(
          sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=10000, value=500, step= 500),
         actionButton("go_decryptage", "Dérypter !")
@@ -60,7 +59,7 @@ ui <- fluidPage(
     tabsetPanel(type = "tabs",
                 tabPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
         ),
-
+h3("Historique des itérations"),
 tabsetPanel(type = "tabs",
                 tabPanel("Historique", verbatimTextOutput("texte_courant",placeholder = TRUE))
         )
@@ -340,17 +339,3 @@ output$clip <- renderUI({
 # Run the application 
 shinyApp(ui = ui, server = server,   options = list(width= 950, height = 800))
 ```
-
-
-
-
-
-
-Note the use of the `height` parameter to determine how much vertical space the embedded application should occupy.
-
-You can also use the `shinyApp` function to define an application inline rather then in an external directory.
-
-In all of R code chunks above the `echo = FALSE` attribute is used. This is to prevent the R code within the chunk from rendering in the document alongside the Shiny components.
-
-
-

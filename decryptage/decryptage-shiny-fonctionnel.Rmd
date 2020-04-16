@@ -16,7 +16,7 @@ rm(list=ls())
 library(stringr)
 library(shiny)
 library(rclipboard)
-load("~/Documents/decryptage backup/decryptage/environnement.RData")
+load("environnement.RData")
 
 
 ### ParamÃ¨tres ###
@@ -39,18 +39,24 @@ ui <- fluidPage(
                      choices = list("Anglais bigramme" = 1, "Anglais Trigramme" = 2,
                                     "Francais trigramme" = 3),selected = 1),
         fileInput("file", h3("Corpus")),
-        textInput("texte_a_crypter", "Texte à crypter", "Enter your text here"),
-        uiOutput("clip"),
-        textInput("texte_a_decrypter", "Texte à decrypter", "Enter your text here"),
-        actionButton("go_cryptage", "Crypter !"),
-        actionButton("go_decryptage", "Dérypter !"),
         sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=50000, value=5000, step= 500)
+    ),
+  inputPanel(
+        textAreaInput("texte_a_crypter", "Texte à crypter","Enter your text here : you know caius marcius is chief enemy to the people. all: we know't, we know't. first citizen: let us kill him, and we'll have corn at our own price. is't a verdict? all: no more talking on't let it be done: away, away! second citizen: one word good citizens."),
+        actionButton("go_cryptage", "Crypter !"),
+        uiOutput("clip")
+    ),
+  inputPanel(
+        textAreaInput("texte_a_decrypter", "Texte à decrypter", "Enter your text here : you know caius marcius is chief enemy to the people. all: we know't, we know't. first citizen: let us kill him, and we'll have corn at our own price. is't a verdict? all: no more talking on't let it be done: away, away! second citizen: one word good citizens."),
+        
+        actionButton("go_decryptage", "Dérypter !")
+        
     ),
     mainPanel(
     tabsetPanel(type = "tabs",
-                tabPanel("texte crypté", textOutput("texte_crypte")),
-                tabPanel("texte courant", textOutput("texte_courant")),
-                tabPanel("texte decrypté", textOutput("texte_decrypte"))
+                tabPanel("texte crypté", verbatimTextOutput("texte_crypte")),
+                tabPanel("texte courant", verbatimTextOutput("texte_courant")),
+                tabPanel("texte decrypté", verbatimTextOutput("texte_decrypte"))
     )
 )
 
@@ -269,42 +275,33 @@ texte_crypte = cryptage(texte,alphabets)
 texte_crypte
 })
 
+
+
+
 decryptage_reactive=eventReactive(c(input$go_decryptage),{
-
-
 
 texte_crypte=input$texte_a_decrypter
 texte_crypte=str_to_lower(texte_crypte)
 texte_crypte_initial=texte_crypte
 frequences_lettres_cryptees=frequencelettres(texte_crypte,extraction_alphabets_du_texte)
 texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cryptees)
-
-
-
-  
-  
 best=list("",0)
 n_iterations_metropolis=input$n_iterations_metropolis
 for(l in 1:n_iterations_metropolis){
   cat(l,"/",n_iterations_metropolis,"\n")
   texte_voisin=choix_texte_voisin(texte_crypte,frequences_lettres,alphabets,proba,matrice_apprentissage,textevoisin,textevoisin2)
-  
 texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_lettres)
-
-
 p=proba(texte_crypte,matrice_apprentissage)
 if(p>best[[2]]){best=list(texte_crypte,p)}
-
 if(l%%1000==0){
+  
 output$texte_courant <- renderText({
-    paste("n= ",l," texte courant : ","   \n\n", texte_crypte)})
+    paste("n= ",l," texte courant : ","   \n\n", texte_crypte)
+  })
 }
-
 }
-
-
-return(best[[1]])
-}) #end decryptage
+best[[1]]
+}) #end decryptage_reactive
 
 
 

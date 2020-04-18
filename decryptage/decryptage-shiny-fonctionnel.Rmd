@@ -7,24 +7,53 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-### RÃ©initialisation de l'environnement ###
+### Réinitialisation de l'environnement ###
 rm(list=ls())
-
-
 
 ### Librairies ###
 library(stringr)
 library(shiny)
 library(rclipboard)
-load("environnement.RData")
-
-
-### ParamÃ¨tres ###
+load("anglais.RData")
 ```
+\
+Ceci est un algorithme de décryptage utilisant la méthode MCMC. Cette méthode se repose dans un premier temps sur le calcul d'une matrice de sélection représentant la fréquence d'apparition de la lettre suivante sachant la lettre précédente.
+L'algorithme affecte ensuite des lettres à chaque symbole du message codé : c'est la clé de décodage. Il calcule ensuite la "qualité" de ce message décodé, c'est-à-dire la probabilité que ce message décodé paraisse dans la langue décodée. L'algorithme testera la "qualité" d'un autre message, en permutant aléatoirement 2 lettres dans la clé de décodage. Il choisira ou rejettera ce nouveau message suivant l'algorithme de metropolis.
+Au bout d'un certain nombre d'itérations, nous obtenons le message décodé.
 
+\
+*Exemple de la matrice de selection pour la langue anglaise :*
 
-
-
+$$
+\begin{array}{c c} &
+\begin{array}{c c c c c c c} \hspace{0.01cm}a\hspace{0.3cm} & \hspace{0.6cm}b\hspace{0.5cm} & \hspace{0.5cm}...\hspace{0.3cm} & \hspace{0.5cm}z\hspace{0.6cm} & \hspace{0.9cm}.\hspace{0.3cm} & \hspace{0.9cm}...\hspace{0.3cm} & \hspace{0.4cm};\hspace{0.1cm}\\
+\end{array} 
+\\
+\begin{array}{c c c c c c c}
+a \\
+b \\
+... \\
+z \\
+. \\
+...\\
+;
+\end{array} 
+&
+\left[
+\begin{array}{c c c c c c c}
+0,000001 & 0,014007 & 0,.. & 0,001169 & 0,000001 & 0,.. & 0,000316\\
+0,075892 & 0,004422 & 0,.. & 0,000001 & 0,000001 & 0,.. & 0,000357\\
+0,.. & 0,.. & 0,.. & 0,.. & 0,.. & 0,.. & 0,..\\
+0,294660 & 0,000001 & 0,.. & 0,020258 & 0 & 0,.. & 0,000001\\
+0,000001 & 0,000001 & 0,.. & 0,000001 & 0,000001 & 0,.. & 0,000001\\
+0,.. & 0,.. & 0,.. & 0,.. & 0,.. & 0,.. & 0,..\\
+0,000001 & 0,000001 & 0,.. & 0,000001 & 0,000001 & 0,.. & 0,000001
+\end{array}
+\right] 
+\end{array}
+$$
+\
+L'algorithme de Métropolis accepte le nouveau message si sa qualité est supérieure à la précédente, mais ne rejette le nouveau message que si \[ \frac{{qualité}_{nouveau \, message}}{{qualité}_{ancien \, message}} \ge  unif(1) \]  afin de permettre à l'algorithme de ne pas rester bloqué sur un minimal local.
 
 
 
@@ -33,6 +62,12 @@ ui <- fluidPage(
   
   rclipboardSetup(),
   h3("Cryptage"),
+  
+  inputPanel(
+        fileInput("file", "Choose a file", multiple = FALSE, accept = NULL,
+  width = NULL, buttonLabel = "Browse...",
+  placeholder = "No file selected")
+    ),
   
   inputPanel(
         textAreaInput("texte_a_crypter", "Texte à crypter","We are accounted poor citizens, the patricians good. What authority surfeits on would relieve us: if they would yield us but the superfluity, while it were wholesome, we might guess they relieved us humanely; but they think we are too dear: the leanness that afflicts us, the object of our misery, is as an inventory to particularise their abundance; our sufferance is a gain to them Let us revenge this with our pikes, ere we become rakes: for the gods know I speak this in hunger for bread, not in thirst for revenge.",width = 885, height = 200)
@@ -52,8 +87,10 @@ h3("Decryptage"),
         textAreaInput("texte_a_decrypter", "Texte à decrypter","-xy!rxy!zzmaicx3ybmmryzfcfwxiekyc?xyb!crfzf!iey:mm3$y-?!cy!ac?mrfc&year;xfceymiy-mas3yrxsfx'xyaeuyf;yc?x&y-mas3y&fxs3yaeyoacyc?xyeabxr;safc&ky-?fsxyfcy-xrxy-?msxem xky-xy f:?cy:axeeyc?x&yrxsfx'x3yaey?a !ixs&gyoacyc?x&yc?fihy-xy!rxycmmy3x!ruyc?xysx!iixeeyc?!cy!;;sfzceyaekyc?xymodxzcym;ymary fexr&kyfey!ey!iyfi'xicmr&ycmyb!rcfzas!rfexyc?xfry!oai3!izxgymaryea;;xr!izxyfey!y:!fiycmyc?x ysxcyaeyrx'xi:xyc?fey-fc?ymarybfhxekyxrxy-xyoxzm xyr!hxeuy;mryc?xy:m3eyhim-yfyebx!hyc?feyfiy?ai:xry;mryorx!3kyimcyfiyc?frecy;mryrx'xi:x$",width = 885, height = 200)),
   inputPanel(
          sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=10000, value=500, step= 500),
-        actionButton("go_decryptage", "Dérypter !")
-        
+        actionButton("go_decryptage", "Dérypter !"),
+        radioButtons("language", h3("Language"),
+                     choices = list("Anglais" = 1, "Français" = 2),
+                     selected = 1)
     ),
     
     tabsetPanel(type = "tabs",
@@ -70,9 +107,15 @@ tabsetPanel(type = "tabs",
 ```{r server, echo=FALSE}
 server <- function(input, output) {
 
+eventReactive(input$file, {
+  var = input$file
+  cat(var)
+})
+ 
+ 
 
 lecture_texte_apprentissage <- function(nom_fichier_texte_apprentissage) {
-  texte_apprentissage <- toString(readLines(nom_fichier_texte_apprentissage))
+  texte_apprentissage <- toString(readLines(nom_fichier_texte_apprentissage),encoding="UTF-8")
   texte_apprentissage <- str_to_lower(texte_apprentissage)
   texte_apprentissage <- gsub("\\s{2,}"," ", texte_apprentissage)
   texte_apprentissage <- gsub(" ,","", texte_apprentissage)
@@ -268,6 +311,12 @@ lettres_ordonnees = traitement_des_caracteres_speciaux(lettres_ordonnees)
 }
 
 ##Execution
+
+
+
+
+
+
 cryptage_reactive=eventReactive(c(input$go_cryptage),{
 texte=input$texte_a_crypter
 texte=str_to_lower(texte)
@@ -277,9 +326,34 @@ texte_crypte
 })
 
 
-
+language=eventReactive(input$language,{
+  input$language
+  langue=input$language
+   if(langue=="Anglais"){
+      rm(list=ls())
+      load("environnement.RData")
+    }
+    
+    if(langue=="Français"){
+      rm(list=ls())
+      load("francais.RData")
+    }
+  
+})
 
 decryptage_reactive=eventReactive(c(input$go_decryptage),{
+language()
+input$language
+  langue=input$language
+   if(langue==1){
+      rm(list=ls())
+      load("anglais.RData")
+    }
+    
+    else if (langue==2){
+      rm(list=ls())
+      load("francais.RData")
+    }
 v=c()
 texte_crypte=input$texte_a_decrypter
 texte_crypte=str_to_lower(texte_crypte)

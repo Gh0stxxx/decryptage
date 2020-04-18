@@ -14,7 +14,7 @@ rm(list=ls())
 library(stringr)
 library(shiny)
 library(rclipboard)
-load("anglais.RData")
+load("environnement.RData")
 ```
 \
 Ceci est un algorithme de décryptage utilisant la méthode MCMC. Cette méthode se repose dans un premier temps sur le calcul d'une matrice de sélection représentant la fréquence d'apparition de la lettre suivante sachant la lettre précédente.
@@ -86,7 +86,7 @@ h3("Decryptage"),
   inputPanel(
         textAreaInput("texte_a_decrypter", "Texte à decrypter","-xy!rxy!zzmaicx3ybmmryzfcfwxiekyc?xyb!crfzf!iey:mm3$y-?!cy!ac?mrfc&year;xfceymiy-mas3yrxsfx'xyaeuyf;yc?x&y-mas3y&fxs3yaeyoacyc?xyeabxr;safc&ky-?fsxyfcy-xrxy-?msxem xky-xy f:?cy:axeeyc?x&yrxsfx'x3yaey?a !ixs&gyoacyc?x&yc?fihy-xy!rxycmmy3x!ruyc?xysx!iixeeyc?!cy!;;sfzceyaekyc?xymodxzcym;ymary fexr&kyfey!ey!iyfi'xicmr&ycmyb!rcfzas!rfexyc?xfry!oai3!izxgymaryea;;xr!izxyfey!y:!fiycmyc?x ysxcyaeyrx'xi:xyc?fey-fc?ymarybfhxekyxrxy-xyoxzm xyr!hxeuy;mryc?xy:m3eyhim-yfyebx!hyc?feyfiy?ai:xry;mryorx!3kyimcyfiyc?frecy;mryrx'xi:x$",width = 885, height = 200)),
   inputPanel(
-         sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=10000, value=500, step= 500),
+         sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
         actionButton("go_decryptage", "Dérypter !"),
         radioButtons("language", h3("Language"),
                      choices = list("Anglais" = 1, "Français" = 2),
@@ -115,7 +115,7 @@ eventReactive(input$file, {
  
 
 lecture_texte_apprentissage <- function(nom_fichier_texte_apprentissage) {
-  texte_apprentissage <- toString(readLines(nom_fichier_texte_apprentissage),encoding="UTF-8")
+  texte_apprentissage <- toString(readLines(nom_fichier_texte_apprentissage,encoding="UTF-8"))
   texte_apprentissage <- str_to_lower(texte_apprentissage)
   texte_apprentissage <- gsub("\\s{2,}"," ", texte_apprentissage)
   texte_apprentissage <- gsub(" ,","", texte_apprentissage)
@@ -257,7 +257,7 @@ frequencelettres=function(texte,extraction_alphabets_du_texte){
 frequence_lettres=c(numeric(length(alphabets)))
   n=str_length(texte)
     for(i in 1:n){
-      if(i%%10000==0){print(i)}
+      if(i%%10000==0){print(paste(i,"/",n))}
       for(j in 1:length(alphabets)){
         if(str_sub(texte,i,i)==alphabets[j]){frequence_lettres[j]=frequence_lettres[j]+1}
       }
@@ -296,6 +296,7 @@ return(textevoisin(texte_crypte,frequences_lettres))
 ##apprentissage
 
 if(FALSE){
+
 texte_apprentissage = lecture_texte_apprentissage(nom_fichier_texte_apprentissage)
 alphabets = extraction_alphabets_du_texte(texte_apprentissage)
 matrice_apprentissage = calcule_probabilite_matrice_apprentissage(texte_apprentissage,alphabets)
@@ -346,12 +347,12 @@ language()
 input$language
   langue=input$language
    if(langue==1){
-      rm(list=ls())
+     
       load("anglais.RData")
     }
     
     else if (langue==2){
-      rm(list=ls())
+      
       load("francais.RData")
     }
 v=c()
@@ -368,7 +369,7 @@ for(l in 1:n_iterations_metropolis){
 texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_lettres)
 p=proba(texte_crypte,matrice_apprentissage)
 if(p>best[[2]]){best=list(texte_crypte,p)}
-if(l%%100==0){
+if(l%%1000==0){
 cat("n = ",l,"\n\n")
 cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
 cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")

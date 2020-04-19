@@ -58,62 +58,57 @@ L'algorithme de Métropolis accepte le nouveau message si sa qualité est supér
 
 
 ```{r ui, echo=FALSE}
-ui <- fluidPage(
+ui <- fluidPage( #interface utilisateur
   
   rclipboardSetup(),
   h3("Cryptage"),
   
   inputPanel(
-        fileInput("file", "Choose a file", multiple = FALSE, accept = NULL,
-  width = NULL, buttonLabel = "Browse...",
-  placeholder = "No file selected"),
-  h4(textOutput("file_ok"), type="text/css", style = "color:#337ab7; position: relative; top: 32px; left: 0px;")
-    ),
+        fileInput("file", "Choose a file", multiple = FALSE, accept = NULL,width = NULL, buttonLabel = "Browse...",placeholder = "No file selected"),
+        h4(textOutput("file_ok"), type="text/css", style = "color:#337ab7; position: relative; top: 32px; left: 0px;")
+        ),
   
   inputPanel(
         textAreaInput("texte_a_crypter", "Texte à crypter","For that, being one o' the lowest, basest, poorest, Of this most wise rebellion, thou go'st foremost: Thou rascal, that art worst in blood to run, Lead'st first to win some vantage. But make you ready your stiff bats and clubs: Rome and her rats are at the point of battle; The one side must have bale. Hail, noble Marcius!",width = 885, height = 200)
-        
-    ),
+        ),
   
-   inputPanel(
-  actionButton("go_cryptage", "Crypter !"),
+  inputPanel(
+        actionButton("go_cryptage", "Crypter !"),
         uiOutput("clip")
-),
+        ),
 
    tabsetPanel(type = "tabs",
-               tabPanel("texte crypté", div(div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
+        tabPanel("texte crypté", div(div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
                ),
-h3("Decryptage"),
-  inputPanel(
-        textAreaInput("texte_a_decrypter", "Texte à decrypter"," oac:n.:xc,'&vscov'co!c:n'cpol'z:xc,.z'z:xcfooa'z:xco c:n&zchoz:cl&z'ca','pp&ovxc:nowcso!z:c oa'hoz:-c:nowca.z$.pxc:n.:c.a:cloaz:c&vc,pooec:ocawvxcp'.e!z:c &az:c:ocl&vczoh'c?.v:.s'3c,w:ch.;'cdowca'.edcdowacz:&  c,.:zc.vec$pw,z-caoh'c.vecn'aca.:zc.a'c.:c:n'cfo&v:co c,.::p'bc:n'cov'cz&e'chwz:cn.?'c,.p'3cn.&pxcvo,p'ch.a$&wzq",width = 885, height = 200)),
+        h3("Decryptage"),
+        inputPanel(
+              textAreaInput("texte_a_decrypter", "Texte à decrypter"," oac:n.:xc,'&vscov'co!c:n'cpol'z:xc,.z'z:xcfooa'z:xco c:n&zchoz:cl&z'ca','pp&ovxc:nowcso!z:c oa'hoz:-c:nowca.z$.pxc:n.:c.a:cloaz:c&vc,pooec:ocawvxcp'.e!z:c &az:c:ocl&vczoh'c?.v:.s'3c,w:ch.;'cdowca'.edcdowacz:&  c,.:zc.vec$pw,z-caoh'c.vecn'aca.:zc.a'c.:c:n'cfo&v:co c,.::p'bc:n'cov'cz&e'chwz:cn.?'c,.p'3cn.&pxcvo,p'ch.a$&wzq",width = 885, height = 200)),
 
 h3("attention le decryptage peut prendre plusieures minutes"),
-  inputPanel(
-         sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
-        actionButton("go_decryptage", "Décrypter !"),
-        radioButtons("language", h3("Language"),
-                     choices = list("Anglais" = 1, "Français" = 2),
-                     selected = 1)
-    ),
+       inputPanel(
+            sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
+            actionButton("go_decryptage", "Décrypter !"),
+            radioButtons("language", h3("Language"),choices = list("Anglais" = 1, "Français" = 2),selected = 1)
+                  ),
     
-    tabsetPanel(type = "tabs",
-                tabPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
-        ),
+      tabsetPanel(type = "tabs",
+            tabPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
+                  ),
 h3("Historique des itérations"),
-tabsetPanel(type = "tabs",
-                tabPanel("Historique", verbatimTextOutput("texte_courant",placeholder = TRUE))
-        )
+      tabsetPanel(type = "tabs",
+             tabPanel("Historique", verbatimTextOutput("texte_courant",placeholder = TRUE))
+                  )
 
 )
 ```
 
 ```{r server, echo=FALSE}
-server <- function(input, output) {
+server <- function(input, output) { #server
 
 
  
 
-lecture_texte_apprentissage <- function(nom_fichier_texte_apprentissage) {
+lecture_texte_apprentissage <- function(nom_fichier_texte_apprentissage) { #Traitement du texte servant à l'apprentissage
   texte_apprentissage <- toString(readLines(nom_fichier_texte_apprentissage,encoding="UTF-8"))
   texte_apprentissage <- str_to_lower(texte_apprentissage)
   texte_apprentissage <- gsub("\\s{2,}"," ", texte_apprentissage)
@@ -123,7 +118,7 @@ lecture_texte_apprentissage <- function(nom_fichier_texte_apprentissage) {
 }
 
 
-extraction_alphabets_du_texte <- function(texte) {
+extraction_alphabets_du_texte <- function(texte) { #extraction des caracteres de l'alphabet du texte
   alphabets = c()
   n=str_length(texte)
   
@@ -131,18 +126,19 @@ extraction_alphabets_du_texte <- function(texte) {
     alphabet = str_sub(texte,i,i)
     
     if (!alphabet %in% alphabets)
-      alphabets = c(alphabets,alphabet)
-  }
+        alphabets = c(alphabets,alphabet)
+    }
   return(alphabets)
 }
 
 
-traitement_des_caracteres_speciaux <- function(alphabets) {
+traitement_des_caracteres_speciaux <- function(alphabets) { #traitement des caractères spéciaux
   alphabets_avec_speciaux = c()
   for (alphabet in alphabets) {
     if ( str_detect( alphabet , "[\\+\\*\\?\\^\\$\\.\\[\\]\\{\\}\\(\\)\\|\\/]" ) ) {
       alphabets_avec_speciaux = c(alphabets_avec_speciaux, str_c("\\",alphabet))
-    } else {
+    }
+    else {
       alphabets_avec_speciaux = c(alphabets_avec_speciaux, alphabet)
     }
   }
@@ -150,7 +146,7 @@ traitement_des_caracteres_speciaux <- function(alphabets) {
 }
 
 
-cryptage <- function(texte,alphabets) {
+cryptage <- function(texte,alphabets) { #cryptage du texte
   texte=str_to_lower(texte)
   alphabets_crypte = sample(alphabets)
   texte_crypte = ""
@@ -162,7 +158,7 @@ cryptage <- function(texte,alphabets) {
 }
 
 
-calcul_matrice_apprentissage <- function(texte, alphabets) {
+calcul_matrice_apprentissage <- function(texte, alphabets) { #calcul de la matrice d'apprentissage
   probabilites = c()
   matrice_col_row_names = alphabets
   alphabets = traitement_des_caracteres_speciaux(alphabets)
@@ -180,28 +176,28 @@ calcul_matrice_apprentissage <- function(texte, alphabets) {
       
     }
   }
-      for(s in 1:length(probabilites)){
-        if(probabilites[s]==0){probabilites[s]=10**(-6)}
+  for(s in 1:length(probabilites)){
+     if(probabilites[s]==0){probabilites[s]=10**(-6)}
       }
   matrice_apprentissage = matrix( probabilites, nrow = length(alphabets), byrow = TRUE, dimnames = list(matrice_col_row_names, matrice_col_row_names) )
   return(matrice_apprentissage)
 }
 
 
-qualite=function(texte,matrice_apprentissage){
+qualite=function(texte,matrice_apprentissage){ #fonction calculant la qualité du texte 
   texte=str_to_lower(texte)
   n=str_length(texte)
   qualite=0
   for(i in 1:(n-1)){
     p=matrice_apprentissage[str_sub(texte,i,i),str_sub(texte,i+1,i+1)]
-    qualite=qualite+log(p)
+    qualite=qualite+log(p) #nous avons pris le log pour permettre à un double de stocker toute l'étendue de la valeur renvoyée.
     
   }
   qualite
 }
 
 ##permutation_alphabet = function(alphabets) 
-textevoisin=function(texte,frequences_lettres){
+textevoisin=function(texte,frequences_lettres){ #calcule un texte voisin aléatoire par permutation de deux lettres
   lettres_ordonnees=names(frequences_lettres)
   alphabet_du_texte=extraction_alphabets_du_texte(texte)
   indice1=sample(length(alphabet_du_texte),size=1)
@@ -225,37 +221,21 @@ textevoisin=function(texte,frequences_lettres){
 }
 
 
-textevoisin_alternatif=function(texte,alphabets){
-  paire_indice=sample(length(alphabets),size=2)
-  texte_voisin=''
-  for(i in 1:str_length(texte)){
-    if(str_sub(texte,i,i)==alphabets[paire_indice[1]]){
-      texte_voisin=str_c(texte_voisin,alphabets[paire_indice[2]])
-      
-    }
-     else if(str_sub(texte,i,i)==alphabets[paire_indice[2]]){
-      texte_voisin=str_c(texte_voisin,alphabets[paire_indice[1]])
-     }
-    else{
-      texte_voisin=str_c(texte_voisin,str_sub(texte,i,i))
-    }
-  }
-  return(texte_voisin)
-}
+
 
 
 
 metropolis=function(texte_voisin,texte_crypte,qualite,matrice_apprentissage,frequences_lettres){
   probanew=qualite(texte_voisin,matrice_apprentissage)
   probaold=qualite(texte_crypte,matrice_apprentissage)
-if (probanew-probaold >= 0) { return(texte_voisin) } 
-else if (runif(1) <= exp(probanew - probaold)) { return(texte_voisin) } 
-else { return(texte_crypte) }
+  if (probanew-probaold >= 0) { return(texte_voisin) } 
+  else if (runif(1) <= exp(probanew - probaold)) { return(texte_voisin) } 
+  else { return(texte_crypte) }
 }
 
 frequencelettres=function(texte,extraction_alphabets_du_texte){
   alphabets=extraction_alphabets_du_texte(texte)
-frequence_lettres=c(numeric(length(alphabets)))
+  frequence_lettres=c(numeric(length(alphabets)))
   n=str_length(texte)
     for(i in 1:n){
       if(i%%10000==0){print(paste(i,"/",n))}
@@ -267,53 +247,44 @@ frequence_lettres=c(numeric(length(alphabets)))
   frequence_lettres=sort(frequence_lettres,decreasing = TRUE)
 }
 
-textecrypte2=function(texte_crypte, frequence_lettres,frequence_lettres_cryptees){
+textecrypte2=function(texte_crypte, frequence_lettres,frequence_lettres_cryptees){ #decryptage par fréquence utilisé avant metropolis pour accelerer le resultat
   lettres_cryptees_ordonnees=names(frequence_lettres_cryptees)
   lettres_ordonnees=names(frequence_lettres)
   texte_crypte2 = ''
   for(i in 1:str_length(texte_crypte)){
     for(j in 1:length(lettres_cryptees_ordonnees)){
       if(str_sub(texte_crypte,i,i)==lettres_cryptees_ordonnees[j]){
-    texte_crypte2=str_c(texte_crypte2,lettres_ordonnees[j])
+        texte_crypte2=str_c(texte_crypte2,lettres_ordonnees[j])
       }
     }
   }
   return(toString(texte_crypte2))
 }
 
-choix_texte_voisin=function(texte_crypte,frequences_lettres,alphabets,qualite,matrice_apprentissage,textevoisin,textevoisin2){
-  if (qualite(texte_crypte,matrice_apprentissage)!=0){
-    return(textevoisin2(texte_crypte,alphabets))
-  }
-  else if(qualite(texte_crypte,matrice_apprentissage)==0){
-return(textevoisin(texte_crypte,frequences_lettres))
-  } 
-  else(print("erreur in choix_texte_voisin"))
-  
-}
+
 
 
 
 ##apprentissage
 
 
-
-generer_rdata=function(nom_fichier_texte_apprentissage,lecture_texte_apprentissage,extraction_alphabets_du_texte,calcul_matrice_apprentissage,frequencelettres,traitement_des_caracteres_speciaux){#Cette fonction genère un fichier .Rdata contenant l'environnement généré lors de l'apprentissage à l'aide du fichier mon_fichier_texte_apprentissage
-texte_apprentissage = lecture_texte_apprentissage(nom_fichier_texte_apprentissage)
-alphabets = extraction_alphabets_du_texte(texte_apprentissage)
-matrice_apprentissage = calcul_matrice_apprentissage(texte_apprentissage,alphabets)
-frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
-lettres_ordonnees=names(frequences_lettres)
-lettres_ordonnees = traitement_des_caracteres_speciaux(lettres_ordonnees)
-#for(i in (length(lettres_ordonnees)-k):length(lettres_ordonnees)){
-#  texte_apprentissage <- gsub(lettres_ordonnees[i],"", texte_apprentissage)
-#}
-#alphabets = extraction_alphabets_du_texte(texte_apprentissage)
-#matrice_apprentissage = calcul_matrice_apprentissage(texte_apprentissage,alphabets)
-#frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
-nom_fichier_sortie=paste(nom_fichier_texte_apprentissage,".Rdata")
-print(paste("le fichier \"",nom_fichier_sortie,"\" a été créé dans le repertoire courant"))
-return(save(matrice_apprentissage,alphabets,frequences_lettres,lettres_ordonnees,file=nom_fichier_sortie))
+#La fonction suivante genère un fichier .Rdata contenant l'environnement généré à l'aide du fichier d'apprentissage mon_fichier_texte_apprentissage
+generer_rdata=function(nom_fichier_texte_apprentissage,lecture_texte_apprentissage,extraction_alphabets_du_texte,calcul_matrice_apprentissage,frequencelettres,traitement_des_caracteres_speciaux){
+  texte_apprentissage = lecture_texte_apprentissage(nom_fichier_texte_apprentissage)
+  alphabets = extraction_alphabets_du_texte(texte_apprentissage)
+  matrice_apprentissage = calcul_matrice_apprentissage(texte_apprentissage,alphabets)
+  frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
+  lettres_ordonnees=names(frequences_lettres)
+  lettres_ordonnees = traitement_des_caracteres_speciaux(lettres_ordonnees)
+  #for(i in (length(lettres_ordonnees)-k):length(lettres_ordonnees)){
+  #  texte_apprentissage <- gsub(lettres_ordonnees[i],"", texte_apprentissage)
+  #}
+  #alphabets = extraction_alphabets_du_texte(texte_apprentissage)
+  #matrice_apprentissage = calcul_matrice_apprentissage(texte_apprentissage,alphabets)
+  #frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
+  nom_fichier_sortie=paste(nom_fichier_texte_apprentissage,".Rdata")
+  print(paste("le fichier \"",nom_fichier_sortie,"\" a été créé dans le repertoire courant"))
+  return(save(matrice_apprentissage,alphabets,frequences_lettres,lettres_ordonnees,file=nom_fichier_sortie))
 }
 
 
@@ -324,7 +295,7 @@ return(save(matrice_apprentissage,alphabets,frequences_lettres,lettres_ordonnees
 
 
 
-cryptage_reactive=eventReactive(c(input$go_cryptage),{
+cryptage_reactive=eventReactive(c(input$go_cryptage),{ #cryptage reactif
   
   input$language
   langue=input$language
@@ -336,83 +307,80 @@ cryptage_reactive=eventReactive(c(input$go_cryptage),{
     else if (langue==1){
      load("anglais.RData")
     }
-texte=input$texte_a_crypter
-texte=str_to_lower(texte)
+  texte=input$texte_a_crypter
+  texte=str_to_lower(texte)
 
-texte_crypte = cryptage(texte,alphabets)
-texte_crypte
+  texte_crypte = cryptage(texte,alphabets)
+  texte_crypte
 })
 
 
 
 
-decryptage_reactive=eventReactive(c(input$go_decryptage),{
-input$language
-  langue=input$language
-   if(langue==2){
+decryptage_reactive=eventReactive(c(input$go_decryptage),{ #decryptage reactif
+  input$language
+    langue=input$language
+    if(langue==2){
       load("francais.Rdata")
       
     }
     
     else if (langue==1){
-     load("anglais.RData")
+      load("anglais.RData")
     }
 
-texte_crypte=input$texte_a_decrypter
-texte_crypte_initial=texte_crypte
-v=c()
-texte_crypte=str_to_lower(texte_crypte)
-frequences_lettres_cryptees=frequencelettres(texte_crypte,extraction_alphabets_du_texte)
-texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cryptees)
-best=list("",-Inf)
-v=c()
-n_iterations_metropolis=input$n_iterations_metropolis
+  texte_crypte=input$texte_a_decrypter
+  texte_crypte_initial=texte_crypte
+  v=c()
+  texte_crypte=str_to_lower(texte_crypte)
+  frequences_lettres_cryptees=frequencelettres(texte_crypte,extraction_alphabets_du_texte)
+  texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cryptees)
+  best=list("",-Inf)
+  v=c()
+  n_iterations_metropolis=input$n_iterations_metropolis
 
 
- withProgress(message = 'Decryptage', value = 0, {
-for(l in 1:n_iterations_metropolis){
+  withProgress(message = 'Decryptage', value = 0, { #barre de progression
+    for(l in 1:n_iterations_metropolis){
   
-  texte_voisin=textevoisin(texte_crypte,frequences_lettres)
-texte_crypte=metropolis(texte_voisin,texte_crypte,qualite,matrice_apprentissage,frequences_lettres)
-p=qualite(texte_crypte,matrice_apprentissage)
+      texte_voisin=textevoisin(texte_crypte,frequences_lettres)
+      texte_crypte=metropolis(texte_voisin,texte_crypte,qualite,matrice_apprentissage,frequences_lettres)
+      p=qualite(texte_crypte,matrice_apprentissage)
 
-  incProgress(1/n_iterations_metropolis, detail = paste("itération ", l,"/",n_iterations_metropolis,"Courant : ","\n",texte_crypte,"\n\n"
-   ))
+      incProgress(1/n_iterations_metropolis, detail = paste("itération ", l,"/",n_iterations_metropolis,"Courant : ","\n",texte_crypte,"\n\n"))
 
-if(p>best[[2]]){best=list(texte_crypte,p)}
-if(l%%100==0){
-cat("n = ",l,"\n\n")
-cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
-cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
-
-
-  v=c(v,texte_crypte)
-}
-}
- })
-v=c(v,best[[1]])
-return(v)
-
+      if(p>best[[2]]){best=list(texte_crypte,p)}
+      if(l%%100==0){
+        cat("n = ",l,"\n\n")
+        cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
+        cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
+        v=c(v,texte_crypte)
+      }
+    }
+  })
+  v=c(v,best[[1]])
+  return(v)
 }) #end decryptage_reactive
 
 
 
-output$texte_courant <- renderPrint(decryptage_reactive())
+output$texte_courant <- renderPrint( #output historique des iterations
+  decryptage_reactive()
+  )
    
 
 
-output$texte_crypte <- renderText({
-    cryptage_reactive()
+output$texte_crypte <- renderText({ #output texte crypte
+  cryptage_reactive()
   })
 
 
- output$texte_decrypte <- renderText({
-    decryptage_reactive()[length(decryptage_reactive())]
-   
-  })
+ output$texte_decrypte <- renderText({ #output texte decrypte
+   decryptage_reactive()[length(decryptage_reactive())]
+   })
 
 
-output$clip <- renderUI({
+output$clip <- renderUI({ #output bouton copier le texte crypte dans le presse-papier 
     rclipButton("clipbtn", "Copier", cryptage_reactive(), icon("clipboard"))
   })
 
@@ -425,5 +393,5 @@ output$clip <- renderUI({
 
 
 # Run the application 
-shinyApp(ui = ui, server = server,   options = list(width= 950, height = 800))
+shinyApp(ui = ui, server = server,   options = list(width= 950, height = 800)) #lancement de shinyapp
 ```

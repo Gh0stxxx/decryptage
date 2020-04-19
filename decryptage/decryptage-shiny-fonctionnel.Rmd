@@ -70,7 +70,7 @@ ui <- fluidPage(
     ),
   
   inputPanel(
-        textAreaInput("texte_a_crypter", "Texte à crypter","We are accounted poor citizens, the patricians good. What authority surfeits on would relieve us: if they would yield us but the superfluity, while it were wholesome, we might guess they relieved us humanely; but they think we are too dear: the leanness that afflicts us, the object of our misery, is as an inventory to particularise their abundance; our sufferance is a gain to them Let us revenge this with our pikes, ere we become rakes: for the gods know I speak this in hunger for bread, not in thirst for revenge.",width = 885, height = 200)
+        textAreaInput("texte_a_crypter", "Texte à crypter","je tu ils nous vous ils donc pour tes ces les and you to be this for.",width = 885, height = 200)
         
     ),
   
@@ -84,7 +84,9 @@ ui <- fluidPage(
                ),
 h3("Decryptage"),
   inputPanel(
-        textAreaInput("texte_a_decrypter", "Texte à decrypter","-xy!rxy!zzmaicx3ybmmryzfcfwxiekyc?xyb!crfzf!iey:mm3$y-?!cy!ac?mrfc&year;xfceymiy-mas3yrxsfx'xyaeuyf;yc?x&y-mas3y&fxs3yaeyoacyc?xyeabxr;safc&ky-?fsxyfcy-xrxy-?msxem xky-xy f:?cy:axeeyc?x&yrxsfx'x3yaey?a !ixs&gyoacyc?x&yc?fihy-xy!rxycmmy3x!ruyc?xysx!iixeeyc?!cy!;;sfzceyaekyc?xymodxzcym;ymary fexr&kyfey!ey!iyfi'xicmr&ycmyb!rcfzas!rfexyc?xfry!oai3!izxgymaryea;;xr!izxyfey!y:!fiycmyc?x ysxcyaeyrx'xi:xyc?fey-fc?ymarybfhxekyxrxy-xyoxzm xyr!hxeuy;mryc?xy:m3eyhim-yfyebx!hyc?feyfiy?ai:xry;mryorx!3kyimcyfiyc?frecy;mryrx'xi:x$",width = 885, height = 200)),
+        textAreaInput("texte_a_decrypter", "Texte à decrypter","je tu ils nous vous ils donc pour tes ces les and you to be this for.",width = 885, height = 200)),
+
+h3("attention le decryptage peut prendre plusieures minutes"),
   inputPanel(
          sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
         actionButton("go_decryptage", "Dérypter !"),
@@ -180,7 +182,7 @@ calcule_probabilite_matrice_apprentissage <- function(texte, alphabets) {
     }
   }
       for(s in 1:length(probabilites)){
-        if(probabilites[s]==0){probabilites[s]=10**(-5)}
+        if(probabilites[s]==0){probabilites[s]=10**(-6)}
       }
   matrice_apprentissage = matrix( probabilites, nrow = length(alphabets), byrow = TRUE, dimnames = list(matrice_col_row_names, matrice_col_row_names) )
   return(matrice_apprentissage)
@@ -191,12 +193,14 @@ proba=function(texte,matrice_apprentissage){
   texte=str_to_lower(texte)
   n=str_length(texte)
   p=1
-  k=4.055*log(n)
+  k=10*log(n)
+  qualite=0
   for(i in 1:(n-1)){
-    p=p*matrice_apprentissage[str_sub(texte,i,i),str_sub(texte,i+1,i+1)]*k
+    p=matrice_apprentissage[str_sub(texte,i,i),str_sub(texte,i+1,i+1)]
+    qualite=qualite+log(p)
     
   }
-  p
+  qualite
 }
 
 ##permutation_alphabet = function(alphabets) 
@@ -248,7 +252,7 @@ Q=function(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_lett
   probanew=proba(texte_voisin,matrice_apprentissage)
   probaold=proba(texte_crypte,matrice_apprentissage)
 if (probanew-probaold >= 0) { return(texte_voisin) } 
-else if (runif(1) <= probanew/probaold) { return(texte_voisin) } 
+else if (runif(1) <= exp(probanew - probaold)) { return(texte_voisin) } 
 else { return(texte_crypte) }
 }
 
@@ -319,6 +323,17 @@ lettres_ordonnees = traitement_des_caracteres_speciaux(lettres_ordonnees)
 
 
 cryptage_reactive=eventReactive(c(input$go_cryptage),{
+  
+  input$language
+  langue=input$language
+   if(langue==2){
+      load("francais.Rdata")
+      
+    }
+    
+    else if (langue==1){
+     load("anglais.RData")
+    }
 texte=input$texte_a_crypter
 texte=str_to_lower(texte)
 
@@ -340,21 +355,23 @@ input$language
     else if (langue==1){
      load("anglais.RData")
     }
-v=c()
+
 texte_crypte=input$texte_a_decrypter
-texte_crypte=str_to_lower(texte_crypte)
 texte_crypte_initial=texte_crypte
+v=c()
+texte_crypte=str_to_lower(texte_crypte)
 frequences_lettres_cryptees=frequencelettres(texte_crypte,extraction_alphabets_du_texte)
 texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cryptees)
-best=list("",0)
+best=list("",-Inf)
+v=c()
 n_iterations_metropolis=input$n_iterations_metropolis
 for(l in 1:n_iterations_metropolis){
   
-  texte_voisin=choix_texte_voisin(texte_crypte,frequences_lettres,alphabets,proba,matrice_apprentissage,textevoisin,textevoisin2)
+  texte_voisin=textevoisin(texte_crypte,frequences_lettres)
 texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_lettres)
 p=proba(texte_crypte,matrice_apprentissage)
 if(p>best[[2]]){best=list(texte_crypte,p)}
-if(l%%1000==0){
+if(l%%101==0){
 cat("n = ",l,"\n\n")
 cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
 cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
@@ -363,7 +380,8 @@ cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
   v=c(v,texte_crypte)
 }
 }
-return(best[[1]])
+v=c(v,best[[1]])
+return(v)
 
 }) #end decryptage_reactive
 

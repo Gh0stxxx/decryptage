@@ -60,14 +60,13 @@ L'algorithme de Métropolis accepte le nouveau message si sa qualité est supér
 ```{r ui, echo=FALSE}
 ui <- fluidPage( #interface utilisateur
   
-  #tags$link(rel = 'stylesheet', type = 'text/css', href = 'progress_style.css'),
   tags$head(tags$style("#shiny-notification-panel{ top: 50% !important;left: 5% !important;margin-top: 170px !important;margin-left: -50px !important; color: blue;font-size: 20px;font-style: italic; width:100%; height:400%} .shiny-notification-close{display:none}")),
   
   rclipboardSetup(),
   h3("Cryptage"),
   
   inputPanel(
-        textAreaInput("texte_a_crypter", "Texte à crypter","For that, being one o' the lowest, basest, poorest, Of this most wise rebellion, thou go'st foremost: Thou rascal, that art worst in blood to run, Lead'st first to win some vantage. But make you ready your stiff bats and clubs: Rome and her rats are at the point of battle; The one side must have bale. Hail, noble Marcius!",width = 885, height = 200)
+        textAreaInput("texte_a_crypter", "Texte à crypter","Enter your text here : In statistics and statistical physics, the Metropolis–Hastings algorithm is a Markov chain Monte Carlo method for obtaining a sequence of random samples from a probability distribution from which direct sampling is difficult. This sequence can be used to approximate the distribution or to compute an integral. Metropolis–Hastings and other MCMC algorithms are generally used for sampling from multi-dimensional distributions, especially when the number of dimensions is high. For single-dimensional distributions, there are usually other methods that can directly return independent samples from the distribution, and these are free from the problem of autocorrelated samples that is inherent in MCMC methods.",width = 885, height = 200)
         ),
   
   inputPanel(
@@ -75,11 +74,12 @@ ui <- fluidPage( #interface utilisateur
         uiOutput("clip")
         ),
 
-   tabsetPanel(type = "tabs",
-        tabPanel("texte crypté", div(div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
-               ),
+   inputPanel("Texte crypté", div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 886px; height: 190px; position:relative ; right: 232px; top: 20px; color: grey ; font-weight : bold"), class="shiny-input-panel", style="font-weight:bold"
+    ),
+   
         h3("Decryptage"),
         h5("Collez ci dessous le texte à decrypter"),
+  
         inputPanel(
               textAreaInput("texte_a_decrypter", "Texte à decrypter"," oac:n.:xc,'&vscov'co!c:n'cpol'z:xc,.z'z:xcfooa'z:xco c:n&zchoz:cl&z'ca','pp&ovxc:nowcso!z:c oa'hoz:-c:nowca.z$.pxc:n.:c.a:cloaz:c&vc,pooec:ocawvxcp'.e!z:c &az:c:ocl&vczoh'c?.v:.s'3c,w:ch.;'cdowca'.edcdowacz:&  c,.:zc.vec$pw,z-caoh'c.vecn'aca.:zc.a'c.:c:n'cfo&v:co c,.::p'bc:n'cov'cz&e'chwz:cn.?'c,.p'3cn.&pxcvo,p'ch.a$&wzq",width = 885, height = 200)),
 
@@ -91,11 +91,14 @@ h4("Attention le decryptage peut prendre plusieures minutes !"),
             actionButton("go_decryptage", "Décrypter !")
                   ),
     
-      tabsetPanel(type = "tabs",
-            tabPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
-                  )
+      #inputPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel")
+                  #)
 
+     inputPanel("Texte decrypté", div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width:886px; height:190px; position:relative; right:232px; top: 20px; color:grey; font-weight:bold"), class="shiny-input-panel", style="font-weight:bold"
+    )
 )
+
+
 ```
 
 ```{r server, echo=FALSE}

@@ -180,7 +180,7 @@ calcule_probabilite_matrice_apprentissage <- function(texte, alphabets) {
     }
   }
       for(s in 1:length(probabilites)){
-        if(probabilites[s]==0){probabilites[s]=10**(-6)}
+        if(probabilites[s]==0){probabilites[s]=10**(-5)}
       }
   matrice_apprentissage = matrix( probabilites, nrow = length(alphabets), byrow = TRUE, dimnames = list(matrice_col_row_names, matrice_col_row_names) )
   return(matrice_apprentissage)
@@ -327,33 +327,18 @@ texte_crypte
 })
 
 
-language=eventReactive(input$language,{
-  input$language
-  langue=input$language
-   if(langue=="Anglais"){
-      rm(list=ls())
-      load("environnement.RData")
-    }
-    
-    if(langue=="Français"){
-      rm(list=ls())
-      load("francais.RData")
-    }
-  
-})
+
 
 decryptage_reactive=eventReactive(c(input$go_decryptage),{
-language()
 input$language
   langue=input$language
-   if(langue==1){
-     
-      load("anglais.RData")
+   if(langue==2){
+      load("francais.Rdata")
+      
     }
     
-    else if (langue==2){
-      
-      load("francais.RData")
+    else if (langue==1){
+     load("anglais.RData")
     }
 v=c()
 texte_crypte=input$texte_a_decrypter

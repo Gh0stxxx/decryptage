@@ -1,5 +1,5 @@
 ---
-title: "Projet MCMC et dechiffrage \n BARBEREAU Pierre-Yves et BOODOO Fadil"
+title: "Projet MCMC et dechiffrage par BARBEREAU Pierre-Yves et BOODOO Fadil"
 runtime: shiny
 output: html_document
 ---
@@ -53,7 +53,7 @@ z \\
 \end{array}
 $$
 \
-L'algorithme de Métropolis accepte le nouveau message si sa qualité est supérieure à la précédente, mais ne rejette le nouveau message que si \[ \frac{{qualité}_{nouveau \, message}}{{qualité}_{ancien \, message}} \ge  unif(1) \]  afin de permettre à l'algorithme de ne pas rester bloqué sur un minimal local.
+L'algorithme de Métropolis accepte le nouveau message si sa qualité est supérieure à la précédente, mais ne rejette le nouveau message que si \[ \frac{{qualité}_{nouveau \, message}}{{qualité}_{ancien \, message}} \ge  unif(1) \]  afin de permettre à l'algorithme de ne pas rester bloqué sur un extrema local.
 
 
 
@@ -81,22 +81,19 @@ ui <- fluidPage( #interface utilisateur
         tabPanel("texte crypté", div(div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
                ),
         h3("Decryptage"),
+        h5("collez le texte à decrypter ci dessous"),
         inputPanel(
               textAreaInput("texte_a_decrypter", "Texte à decrypter"," oac:n.:xc,'&vscov'co!c:n'cpol'z:xc,.z'z:xcfooa'z:xco c:n&zchoz:cl&z'ca','pp&ovxc:nowcso!z:c oa'hoz:-c:nowca.z$.pxc:n.:c.a:cloaz:c&vc,pooec:ocawvxcp'.e!z:c &az:c:ocl&vczoh'c?.v:.s'3c,w:ch.;'cdowca'.edcdowacz:&  c,.:zc.vec$pw,z-caoh'c.vecn'aca.:zc.a'c.:c:n'cfo&v:co c,.::p'bc:n'cov'cz&e'chwz:cn.?'c,.p'3cn.&pxcvo,p'ch.a$&wzq",width = 885, height = 200)),
 
-h3("attention le decryptage peut prendre plusieures minutes"),
+h4("attention le decryptage peut prendre plusieures minutes"),
        inputPanel(
-            sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
+            sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=5000, step= 500),
             actionButton("go_decryptage", "Décrypter !"),
             radioButtons("language", h3("Language"),choices = list("Anglais" = 1, "Français" = 2),selected = 1)
                   ),
     
       tabsetPanel(type = "tabs",
             tabPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
-                  ),
-h3("Historique des itérations"),
-      tabsetPanel(type = "tabs",
-             tabPanel("Historique", verbatimTextOutput("texte_courant",placeholder = TRUE))
                   )
 
 )
@@ -358,15 +355,10 @@ decryptage_reactive=eventReactive(c(input$go_decryptage),{ #decryptage reactif
       }
     }
   })
-  v=c(v,best[[1]])
-  return(v)
+  return(best)
 }) #end decryptage_reactive
 
 
-
-output$texte_courant <- renderPrint( #output historique des iterations
-  decryptage_reactive()
-  )
    
 
 
@@ -376,7 +368,7 @@ output$texte_crypte <- renderText({ #output texte crypte
 
 
  output$texte_decrypte <- renderText({ #output texte decrypte
-   decryptage_reactive()[length(decryptage_reactive())]
+   decryptage_reactive()[[1]]
    })
 
 

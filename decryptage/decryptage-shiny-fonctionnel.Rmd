@@ -60,13 +60,11 @@ L'algorithme de Métropolis accepte le nouveau message si sa qualité est supér
 ```{r ui, echo=FALSE}
 ui <- fluidPage( #interface utilisateur
   
+  #tags$link(rel = 'stylesheet', type = 'text/css', href = 'progress_style.css'),
+  tags$head(tags$style("#shiny-notification-panel{ top: 50% !important;left: 5% !important;margin-top: 170px !important;margin-left: -50px !important; color: blue;font-size: 20px;font-style: italic; width:100%; height:400%} .shiny-notification-close{display:none}")),
+  
   rclipboardSetup(),
   h3("Cryptage"),
-  
-  inputPanel(
-        fileInput("file", "Choose a file", multiple = FALSE, accept = NULL,width = NULL, buttonLabel = "Browse...",placeholder = "No file selected"),
-        h4(textOutput("file_ok"), type="text/css", style = "color:#337ab7; position: relative; top: 32px; left: 0px;")
-        ),
   
   inputPanel(
         textAreaInput("texte_a_crypter", "Texte à crypter","For that, being one o' the lowest, basest, poorest, Of this most wise rebellion, thou go'st foremost: Thou rascal, that art worst in blood to run, Lead'st first to win some vantage. But make you ready your stiff bats and clubs: Rome and her rats are at the point of battle; The one side must have bale. Hail, noble Marcius!",width = 885, height = 200)
@@ -81,15 +79,16 @@ ui <- fluidPage( #interface utilisateur
         tabPanel("texte crypté", div(div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel"))
                ),
         h3("Decryptage"),
-        h5("collez le texte à decrypter ci dessous"),
+        h5("Collez ci dessous le texte à decrypter"),
         inputPanel(
               textAreaInput("texte_a_decrypter", "Texte à decrypter"," oac:n.:xc,'&vscov'co!c:n'cpol'z:xc,.z'z:xcfooa'z:xco c:n&zchoz:cl&z'ca','pp&ovxc:nowcso!z:c oa'hoz:-c:nowca.z$.pxc:n.:c.a:cloaz:c&vc,pooec:ocawvxcp'.e!z:c &az:c:ocl&vczoh'c?.v:.s'3c,w:ch.;'cdowca'.edcdowacz:&  c,.:zc.vec$pw,z-caoh'c.vecn'aca.:zc.a'c.:c:n'cfo&v:co c,.::p'bc:n'cov'cz&e'chwz:cn.?'c,.p'3cn.&pxcvo,p'ch.a$&wzq",width = 885, height = 200)),
 
-h4("attention le decryptage peut prendre plusieures minutes"),
+h4("Attention le decryptage peut prendre plusieures minutes !"),
        inputPanel(
-            sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=5000, step= 500),
-            actionButton("go_decryptage", "Décrypter !"),
-            radioButtons("language", h3("Language"),choices = list("Anglais" = 1, "Français" = 2),selected = 1)
+            
+            radioButtons("language", h3("Language"),choices = list("Anglais" = 1, "Français" = 2),selected = 1),
+            sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
+            actionButton("go_decryptage", "Décrypter !")
                   ),
     
       tabsetPanel(type = "tabs",
@@ -338,16 +337,17 @@ decryptage_reactive=eventReactive(c(input$go_decryptage),{ #decryptage reactif
 
 
   withProgress(message = 'Decryptage', value = 0, { #barre de progression
-    for(l in 1:n_iterations_metropolis){
+    for(l in 1:n_iterations_metropolis){ #iterations de metropolis
   
       texte_voisin=textevoisin(texte_crypte,frequences_lettres)
+        incProgress(1/n_iterations_metropolis, detail = paste("itération ", l,"/",n_iterations_metropolis,"Courant : ","\n",texte_voisin,"\n\n")) #progression barre de progression
+
       texte_crypte=metropolis(texte_voisin,texte_crypte,qualite,matrice_apprentissage,frequences_lettres)
       p=qualite(texte_crypte,matrice_apprentissage)
 
-      incProgress(1/n_iterations_metropolis, detail = paste("itération ", l,"/",n_iterations_metropolis,"Courant : ","\n",texte_crypte,"\n\n"))
-
-      if(p>best[[2]]){best=list(texte_crypte,p)}
-      if(l%%100==0){
+    
+      if(p>best[[2]]){best=list(texte_crypte,p)} #sauvegarde du meilleur resultat
+      if(l%%100==0){ # print une iteration sur 100 afin d'observer le travail effectué dans la boucle (en mode console uniquement)
         cat("n = ",l,"\n\n")
         cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
         cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
@@ -355,7 +355,7 @@ decryptage_reactive=eventReactive(c(input$go_decryptage),{ #decryptage reactif
       }
     }
   })
-  return(best)
+  return(best) #retourne le meilleur resultat 
 }) #end decryptage_reactive
 
 

@@ -70,7 +70,7 @@ ui <- fluidPage(
     ),
   
   inputPanel(
-        textAreaInput("texte_a_crypter", "Texte à crypter","je tu ils nous vous ils donc pour tes ces les and you to be this for.",width = 885, height = 200)
+        textAreaInput("texte_a_crypter", "Texte à crypter","For that, being one o' the lowest, basest, poorest, Of this most wise rebellion, thou go'st foremost: Thou rascal, that art worst in blood to run, Lead'st first to win some vantage. But make you ready your stiff bats and clubs: Rome and her rats are at the point of battle; The one side must have bale. Hail, noble Marcius!",width = 885, height = 200)
         
     ),
   
@@ -84,12 +84,12 @@ ui <- fluidPage(
                ),
 h3("Decryptage"),
   inputPanel(
-        textAreaInput("texte_a_decrypter", "Texte à decrypter","je tu ils nous vous ils donc pour tes ces les and you to be this for.",width = 885, height = 200)),
+        textAreaInput("texte_a_decrypter", "Texte à decrypter"," oac:n.:xc,'&vscov'co!c:n'cpol'z:xc,.z'z:xcfooa'z:xco c:n&zchoz:cl&z'ca','pp&ovxc:nowcso!z:c oa'hoz:-c:nowca.z$.pxc:n.:c.a:cloaz:c&vc,pooec:ocawvxcp'.e!z:c &az:c:ocl&vczoh'c?.v:.s'3c,w:ch.;'cdowca'.edcdowacz:&  c,.:zc.vec$pw,z-caoh'c.vecn'aca.:zc.a'c.:c:n'cfo&v:co c,.::p'bc:n'cov'cz&e'chwz:cn.?'c,.p'3cn.&pxcvo,p'ch.a$&wzq",width = 885, height = 200)),
 
 h3("attention le decryptage peut prendre plusieures minutes"),
   inputPanel(
-         sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
-        actionButton("go_decryptage", "Dérypter !"),
+         sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=5000, step= 500),
+        actionButton("go_decryptage", "Décrypter !"),
         radioButtons("language", h3("Language"),
                      choices = list("Anglais" = 1, "Français" = 2),
                      selected = 1)
@@ -365,13 +365,20 @@ texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cry
 best=list("",-Inf)
 v=c()
 n_iterations_metropolis=input$n_iterations_metropolis
+
+
+ withProgress(message = 'Decryptage', value = 0, {
 for(l in 1:n_iterations_metropolis){
   
   texte_voisin=textevoisin(texte_crypte,frequences_lettres)
 texte_crypte=Q(texte_voisin,texte_crypte,proba,matrice_apprentissage,frequences_lettres)
 p=proba(texte_crypte,matrice_apprentissage)
+
+  incProgress(1/n_iterations_metropolis, detail = paste("itération ", l,"/",n_iterations_metropolis,"Courant : ","\n",texte_crypte,"\n\n"
+    ))
+
 if(p>best[[2]]){best=list(texte_crypte,p)}
-if(l%%101==0){
+if(l%%100==0){
 cat("n = ",l,"\n\n")
 cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
 cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
@@ -380,6 +387,7 @@ cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
   v=c(v,texte_crypte)
 }
 }
+ })
 v=c(v,best[[1]])
 return(v)
 
@@ -387,7 +395,7 @@ return(v)
 
 
 
-  output$texte_courant <- renderPrint(decryptage_reactive())
+output$texte_courant <- renderPrint(decryptage_reactive())
    
 
 

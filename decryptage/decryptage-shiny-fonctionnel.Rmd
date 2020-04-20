@@ -14,12 +14,15 @@ rm(list=ls())
 library(stringr)
 library(shiny)
 library(rclipboard)
+library(ipc)
+library(future)
 load("environnement.RData")
 ```
 \
-Ceci est un algorithme de décryptage utilisant la méthode MCMC. Cette méthode se repose dans un premier temps sur le calcul d'une matrice de sélection représentant la fréquence d'apparition de la lettre suivante sachant la lettre précédente.
-L'algorithme affecte ensuite des lettres à chaque symbole du message codé : c'est la clé de décodage. Il calcule ensuite la "qualité" de ce message décodé, c'est-à-dire la probabilité que ce message décodé paraisse dans la langue décodée. L'algorithme testera la "qualité" d'un autre message, en permutant aléatoirement 2 lettres dans la clé de décodage. Il choisira ou rejettera ce nouveau message suivant l'algorithme de metropolis.
-Au bout d'un certain nombre d'itérations, nous obtenons le message décodé.
+  Notre projet est issu des 20 premières minutes de cette vidéo du Collège De France : https://www.college-de-france.fr/site/claire-mathieu/course-2018-01-09-10h00.htm ainsi que de ce document https://math.uchicago.edu/~shmuel/Network-course-readings/MCMCRev.pdf. Cet algorithme est un algorithme de décryptage utilisant la méthode MCMC. Cette méthode se repose dans un premier temps sur le calcul d'une matrice de transition représentant la fréquence d'apparition de la lettre suivante sachant la lettre précédente.
+L'algorithme affecte ensuite aléatoirement une lettre à chaque symbole du message codé : c'est la première tentative d'une clé de décodage. Il calcule ensuite la "qualité" du message décodé à l'aide de cette première clé à l'aide de la matrice de transition : c'est la probabilité de la chaine de markov correspondant à ce texte dans la lanque dont est issue la matrice de transition ( modulo quelques modifications pour permettre à un double de stocker ce nombre en mémoire ). Ensuite, à chaque iteration, l'algorithme permute aléatoirement deux lettres dans la clé de dechiffrage, puis teste la "qualité" du message derypté à l'aide de cette nouvelle clé. Si la qualité du texte issu de cette nouvelle clé est meilleure, il garde cette clé, sinon il l'accepte seulement si la condition aléatoire suivante est vérifiée et la rejette sinon.
+\[ \frac{{qualité}_{nouveau \, message}}{{qualité}_{ancien \, message}} \ge  unif(1) \]
+Au bout de quelques milliers d'itérations, l'algorithme converge vers le message decrypté.
 
 \
 *Exemple de la matrice de selection pour la langue anglaise :*
@@ -70,25 +73,28 @@ ui <- fluidPage( #interface utilisateur
         ),
   
   inputPanel(
-        actionButton("go_cryptage", "Crypter !"),
-        uiOutput("clip")
+        actionButton("go_cryptage", "Crypter !")
         ),
 
    inputPanel("Texte crypté", div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 886px; height: 190px; position:relative ; right: 232px; top: 20px; color: grey ; font-weight : bold"), class="shiny-input-panel", style="font-weight:bold"
     ),
+  inputPanel(
+        uiOutput("clip")
+        ),
    
         h3("Decryptage"),
         h5("Collez ci dessous le texte à decrypter"),
   
         inputPanel(
-              textAreaInput("texte_a_decrypter", "Texte à decrypter"," oac:n.:xc,'&vscov'co!c:n'cpol'z:xc,.z'z:xcfooa'z:xco c:n&zchoz:cl&z'ca','pp&ovxc:nowcso!z:c oa'hoz:-c:nowca.z$.pxc:n.:c.a:cloaz:c&vc,pooec:ocawvxcp'.e!z:c &az:c:ocl&vczoh'c?.v:.s'3c,w:ch.;'cdowca'.edcdowacz:&  c,.:zc.vec$pw,z-caoh'c.vecn'aca.:zc.a'c.:c:n'cfo&v:co c,.::p'bc:n'cov'cz&e'chwz:cn.?'c,.p'3cn.&pxcvo,p'ch.a$&wzq",width = 885, height = 200)),
+              textAreaInput("texte_a_decrypter", "Texte à decrypter","",width = 885, height = 200)),
 
 h4("Attention le decryptage peut prendre plusieures minutes !"),
        inputPanel(
             
             radioButtons("language", h3("Language"),choices = list("Anglais" = 1, "Français" = 2),selected = 1),
             sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
-            actionButton("go_decryptage", "Décrypter !")
+            actionButton("go_decryptage", "Décrypter !"),
+            actionButton("stop", "Stop !")
                   ),
     
       #inputPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel")
@@ -315,8 +321,8 @@ cryptage_reactive=eventReactive(c(input$go_cryptage),{ #cryptage reactif
 
 
 
-
 decryptage_reactive=eventReactive(c(input$go_decryptage),{ #decryptage reactif
+  Stop=reactiveVal(0)
   input$language
     langue=input$language
     if(langue==2){
@@ -341,8 +347,9 @@ decryptage_reactive=eventReactive(c(input$go_decryptage),{ #decryptage reactif
 
   withProgress(message = 'Decryptage', value = 0, { #barre de progression
     for(l in 1:n_iterations_metropolis){ #iterations de metropolis
-  
+       
       texte_voisin=textevoisin(texte_crypte,frequences_lettres)
+      
         incProgress(1/n_iterations_metropolis, detail = paste("itération ", l,"/",n_iterations_metropolis,"Courant : ","\n",texte_voisin,"\n\n")) #progression barre de progression
 
       texte_crypte=metropolis(texte_voisin,texte_crypte,qualite,matrice_apprentissage,frequences_lettres)
@@ -350,19 +357,12 @@ decryptage_reactive=eventReactive(c(input$go_decryptage),{ #decryptage reactif
 
     
       if(p>best[[2]]){best=list(texte_crypte,p)} #sauvegarde du meilleur resultat
-      if(l%%100==0){ # print une iteration sur 100 afin d'observer le travail effectué dans la boucle (en mode console uniquement)
-        cat("n = ",l,"\n\n")
-        cat("Courant  : ",p,"\n",texte_crypte,"\n\n")
-        cat("meilleur : ",best[[2]],"\n",best[[1]],"\n","\n\n\n")
-        v=c(v,texte_crypte)
-      }
+     
     }
   })
   return(best) #retourne le meilleur resultat 
 }) #end decryptage_reactive
 
-
-   
 
 
 output$texte_crypte <- renderText({ #output texte crypte

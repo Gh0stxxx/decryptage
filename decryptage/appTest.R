@@ -4,13 +4,22 @@ library(future)
 library(promises)
 library(stringr)
 library(rclipboard)
+library(shinydashboard)
 plan(multiprocess)
 load("environnement.RData")
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
-  
-  
+ui <- dashboardPage(
+  dashboardHeader(title="Projet MCMC"),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Cryptage",tabName = "Cryptage"),
+      menuItem("Decryptage",tabName = "Decryptage")
+    )
+  ),
+  dashboardBody(
+  tabItems(
+    tabItem(tabName="Cryptage",
   tags$head(tags$style("#shiny-notification-panel{ top: 50% !important;left: 5% !important;margin-top: 170px !important;margin-left: -50px !important; color: blue;font-size: 20px;font-style: italic; width:100%; height:400%} .shiny-notification-close{display:none}")),
   
   rclipboardSetup(),
@@ -29,7 +38,8 @@ ui <- fluidPage(
   inputPanel(
     uiOutput("clip")
   ),
-  
+    ),
+  tabItem(tabName="Decryptage",
   h3("Decryptage"),
   h5("Collez ci dessous le texte à decrypter"),
   
@@ -50,9 +60,10 @@ ui <- fluidPage(
   
   inputPanel("Texte decrypté", div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width:886px; height:190px; position:relative; right:232px; top: 20px; color:grey; font-weight:bold"), class="shiny-input-panel", style="font-weight:bold"
   )
-  
+  )
 )
-
+)
+)
 server <- function(input, output) {
   
   

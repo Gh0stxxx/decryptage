@@ -272,6 +272,28 @@ server <- function(input, output) {
   }
   
   
+  
+#La fonction suivante genère un fichier .Rdata contenant l'environnement généré à l'aide du fichier d'apprentissage mon_fichier_texte_apprentissage
+generer_rdata=function(nom_fichier_texte_apprentissage,lecture_texte_apprentissage,extraction_alphabets_du_texte,calcul_matrice_apprentissage,frequencelettres,traitement_des_caracteres_speciaux){
+  texte_apprentissage = lecture_texte_apprentissage(nom_fichier_texte_apprentissage)
+  alphabets = extraction_alphabets_du_texte(texte_apprentissage)
+  matrice_apprentissage = calcul_matrice_apprentissage(texte_apprentissage,alphabets)
+  frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
+  lettres_ordonnees=names(frequences_lettres)
+  lettres_ordonnees = traitement_des_caracteres_speciaux(lettres_ordonnees)
+  #for(i in (length(lettres_ordonnees)-k):length(lettres_ordonnees)){
+  #  texte_apprentissage <- gsub(lettres_ordonnees[i],"", texte_apprentissage)
+  #}
+  #alphabets = extraction_alphabets_du_texte(texte_apprentissage)
+  #matrice_apprentissage = calcul_matrice_apprentissage(texte_apprentissage,alphabets)
+  #frequences_lettres=frequencelettres(texte_apprentissage,extraction_alphabets_du_texte)
+  nom_fichier_sortie=paste(nom_fichier_texte_apprentissage,".Rdata")
+  print(paste("le fichier \"",nom_fichier_sortie,"\" a été créé dans le repertoire courant"))
+  return(save(matrice_apprentissage,alphabets,frequences_lettres,lettres_ordonnees,file=nom_fichier_sortie))
+}
+  
+  
+  
   observeEvent(input$go_cryptage,{ #cryptage reactif
     
     input$language

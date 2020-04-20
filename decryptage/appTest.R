@@ -14,7 +14,8 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Cryptage",tabName = "Cryptage"),
-      menuItem("Decryptage",tabName = "Decryptage")
+      menuItem("Decryptage",tabName = "Decryptage"),
+      menuItem("plot",tabname="plot")
     )
   ),
   dashboardBody(
@@ -32,7 +33,7 @@ ui <- dashboardPage(
   inputPanel(
     actionButton("go_cryptage", "Crypter !")
   ),
-  
+  inputPanel("plot",textOutput("plot")),
   inputPanel("Texte crypté", div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 886px; height: 190px; position:relative ; right: 232px; top: 20px; color: grey ; font-weight : bold"), class="shiny-input-panel", style="font-weight:bold"
   ),
   inputPanel(
@@ -224,7 +225,8 @@ server <- function(input, output) {
     return(toString(texte_crypte2))
   }
   
-  
+  histp=reactiveVal(0)
+  histqualités=reactiveVal(0)
   observeEvent(input$go_cryptage,{ #cryptage reactif
     
     input$language
@@ -247,7 +249,7 @@ server <- function(input, output) {
   
 
   interruptor <- AsyncInterruptor$new()    # To signal STOP to the future
-
+  histqualites=reactiveVal()
   result_val <- reactiveVal()
   running <- reactiveVal(FALSE)
   observeEvent(input$go_decryptage,{
@@ -264,7 +266,7 @@ server <- function(input, output) {
     
     texte_crypte=input$texte_a_decrypter
     texte_crypte_initial=texte_crypte
-    v=c()
+    
     texte_crypte=str_to_lower(texte_crypte)
     frequences_lettres_cryptees=frequencelettres(texte_crypte,extraction_alphabets_du_texte)
     texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cryptees)
@@ -278,9 +280,11 @@ server <- function(input, output) {
 
     # Create new progress bar
     progress <- AsyncProgress$new(message="Decryptage")
-
+    
     result_val(NULL)
-
+    histp(c())
+    histqualites(NULL)
+    histp(NULL)
 
     fut <- future({
       for(i in 1:n_iterations_metropolis){
@@ -290,7 +294,7 @@ server <- function(input, output) {
         
         texte_crypte=metropolis(texte_voisin,texte_crypte,qualite,matrice_apprentissage,frequences_lettres)
         p=qualite(texte_crypte,matrice_apprentissage)
-        
+        histp<-c(histp,p)
         
         if(p>best[[2]]){best=list(texte_crypte,p)} 
         # Increment progress bar
@@ -299,8 +303,7 @@ server <- function(input, output) {
         # throw errors that were signal (if Cancel was clicked)
         interruptor$execInterrupts()
       }
-
-      best[[1]]
+      reactiveVal(c(best[[1]],histp))
     }) %...>% result_val
 
     # Show notification on error or user interrupt
@@ -332,14 +335,15 @@ server <- function(input, output) {
     req(texte_crypte())
   })
   
-  output$texte_decrypte <- renderText({ #output texte decrypte
-    req(result_val())
+  output$texte_decrypte <- renderText({ 
+   req(result_val())
   })
 
   output$clip <- renderUI({ #output bouton copier le texte crypte dans le presse-papier 
     rclipButton("clipbtn", "Copier le texte crypté dans le presse papier", req(texte_crypte()), icon("clipboard"))
   })
-  
+  output$plot<-renderText({
+    req(result_val()[2])})
 }
 
 # Run the application

@@ -28,7 +28,7 @@ ui <- dashboardPage(
     dashboardBody(
   tabItems(
     tabItem(tabName="Cryptage",
-  tags$head(tags$style("#shiny-notification-panel{ top: 50% !important;left: 5% !important;margin-top: 170px !important;margin-left: -50px !important; color: blue;font-size: 20px;font-style: italic; width:100%; height:400%} .shiny-notification-close{display:none} .shiny-notification{position:relative; top:-210px; left:10px; width:98.5%}")),
+  tags$head(tags$style("#shiny-notification-panel{ top: 50% !important;left: 5% !important;margin-top: 170px !important;margin-left: -50px !important; color: blue;font-size: 20px;font-style: italic; width:100%; height:400%} .shiny-notification-close{display:none} .shiny-notification{position:relative; top:-60px; left:240px; width:74.5%}")),
   
 
 
@@ -37,14 +37,14 @@ ui <- dashboardPage(
   h3("Cryptage"),
   
   inputPanel(
-    textAreaInput("texte_a_crypter", "Texte à crypter","Enter your text here : In statistics and statistical physics, the Metropolis–Hastings algorithm is a Markov chain Monte Carlo method for obtaining a sequence of random samples from a probability distribution from which direct sampling is difficult. This sequence can be used to approximate the distribution or to compute an integral. Metropolis–Hastings and other MCMC algorithms are generally used for sampling from multi-dimensional distributions, especially when the number of dimensions is high. For single-dimensional distributions, there are usually other methods that can directly return independent samples from the distribution, and these are free from the problem of autocorrelated samples that is inherent in MCMC methods.",width = 850, height = 200)
+    textAreaInput("texte_a_crypter", "Texte à crypter","Enter your text here : In statistics and statistical physics, the Metropolis–Hastings algorithm is a Markov chain Monte Carlo method for obtaining a sequence of random samples from a probability distribution from which direct sampling is difficult. This sequence can be used to approximate the distribution or to compute an integral. Metropolis–Hastings and other MCMC algorithms are generally used for sampling from multi-dimensional distributions, especially when the number of dimensions is high. For single-dimensional distributions, there are usually other methods that can directly return independent samples from the distribution, and these are free from the problem of autocorrelated samples that is inherent in MCMC methods.",width = 722, height = 200)
   ),
   
   inputPanel(
     actionButton("go_cryptage", "Crypter !")
   ),
   
-  inputPanel("Texte crypté", div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 406.5%; height: 190px; position:relative ; right: 232px; top: 20px; color: grey ; font-weight : bold"), class="shiny-input-panel", style="font-weight:bold"
+  inputPanel("Texte crypté", div(textOutput("texte_crypte"), class="form-control shiny-bound-input", style="width: 722px; height: 190px; position:relative ; right: 232px; top: 20px; color: grey ; font-weight : bold"), class="shiny-input-panel", style="font-weight:bold"
   ),
   inputPanel(
     uiOutput("clip")
@@ -55,7 +55,7 @@ ui <- dashboardPage(
   h5("Collez ci dessous le texte à decrypter"),
   
   inputPanel(
-    textAreaInput("texte_a_decrypter", "Texte à decrypter","rcxr-?ub&-?xr'x?wr-r?g?sc?hx xshxs.h? cp?hx xshxs. o?nwuhs.hv?xwr?trx-bnboshw hxscqh? oqb-sxwt?sh? ?t -ybi?.w sc?tbcxr?. -ob?trxwbp?lb-?b!x scscq? ?hr:&rc.r?bl?- cpbt?h tnorh?l-bt? ?n-b! !sosxu?pshx-s!&xsbc?l-bt?ews.w?ps-r.x?h tnoscq?sh?pslls.&oxj?xwsh?hr:&rc.r?. c?!r?&hrp?xb? nn-b'st xr?xwr?pshx-s!&xsbc?b-?xb?.btn&xr? c?scxrq- oj?trx-bnboshw hxscqh? cp?bxwr-?t.t.? oqb-sxwth? -r?qrcr- oou?&hrp?lb-?h tnoscq?l-bt?t&oxszpstrchsbc o?pshx-s!&xsbchv?rhnr.s oou?ewrc?xwr?c&t!r-?bl?pstrchsbch?sh?wsqwj?lb-?hscqorzpstrchsbc o?pshx-s!&xsbchv?xwr-r? -r?&h& oou?bxwr-?trxwbph?xw x?. c?ps-r.xou?-rx&-c?scprnrcprcx?h tnorh?l-bt?xwr?pshx-s!&xsbcv? cp?xwrhr? -r?l-rr?l-bt?xwr?n-b!ort?bl? &xb.b--ro xrp?h tnorh?xw x?sh?scwr-rcx?sc?t.t.?trxwbphj",width = 850, height = 200)),
+    textAreaInput("texte_a_decrypter", "Texte à decrypter","rcxr-?ub&-?xr'x?wr-r?g?sc?hx xshxs.h? cp?hx xshxs. o?nwuhs.hv?xwr?trx-bnboshw hxscqh? oqb-sxwt?sh? ?t -ybi?.w sc?tbcxr?. -ob?trxwbp?lb-?b!x scscq? ?hr:&rc.r?bl?- cpbt?h tnorh?l-bt? ?n-b! !sosxu?pshx-s!&xsbc?l-bt?ews.w?ps-r.x?h tnoscq?sh?pslls.&oxj?xwsh?hr:&rc.r?. c?!r?&hrp?xb? nn-b'st xr?xwr?pshx-s!&xsbc?b-?xb?.btn&xr? c?scxrq- oj?trx-bnboshw hxscqh? cp?bxwr-?t.t.? oqb-sxwth? -r?qrcr- oou?&hrp?lb-?h tnoscq?l-bt?t&oxszpstrchsbc o?pshx-s!&xsbchv?rhnr.s oou?ewrc?xwr?c&t!r-?bl?pstrchsbch?sh?wsqwj?lb-?hscqorzpstrchsbc o?pshx-s!&xsbchv?xwr-r? -r?&h& oou?bxwr-?trxwbph?xw x?. c?ps-r.xou?-rx&-c?scprnrcprcx?h tnorh?l-bt?xwr?pshx-s!&xsbcv? cp?xwrhr? -r?l-rr?l-bt?xwr?n-b!ort?bl? &xb.b--ro xrp?h tnorh?xw x?sh?scwr-rcx?sc?t.t.?trxwbphj",width = 722, height = 200)),
   
   h4("Attention le decryptage peut prendre plusieures minutes !"),
   inputPanel(
@@ -69,13 +69,13 @@ ui <- dashboardPage(
   #inputPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 860px; height: 200px; color: grey"), class="shiny-input-panel")
   #)
   
-  inputPanel("Texte decrypté", div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width:406.5%; height:190px; position:relative; right:111.5%; top: 20px; color:grey; font-weight:bold"), class="shiny-input-panel", style="font-weight:bold"
+  inputPanel("Texte decrypté", div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width:722px; height:190px; position:relative; right:111.5%; top: 20px; color:grey; font-weight:bold"), class="shiny-input-panel", style="font-weight:bold"
   )
     )
 )))
 ```
 \
-  Notre projet est issu des 20 premières minutes de cette vidéo du Collège De France : https://www.college-de-france.fr/site/claire-mathieu/course-2018-01-09-10h00.htm ainsi que de ce document https://math.uchicago.edu/~shmuel/Network-course-readings/MCMCRev.pdf. Cet algorithme est un algorithme de décryptage utilisant la méthode MCMC. Cette méthode se repose dans un premier temps sur le calcul d'une matrice de transition représentant la fréquence d'apparition de la lettre suivante sachant la lettre précédente.
+  Notre projet est issu des 20 premières minutes de cette vidéo du Collège De France : https://www.college-de-france.fr/site/claire-mathieu/course-2018-01-09-10h00.htm ainsi que de ce document https://math.uchicago.edu/~shmuel/Network-course-readings/MCMCRev.pdf. L'algorithme présenté est un algorithme de décryptage utilisant la méthode MCMC et l'algorithme de metropolis. Cette méthode se repose dans un premier temps sur le calcul d'une matrice de transition représentant la fréquence d'apparition de la lettre suivante sachant la lettre précédente.
 \
 *Exemple de la matrice de selection pour la langue anglaise :*
 $$
@@ -106,7 +106,7 @@ z \\
 \right] 
 \end{array}
 $$
-L'algorithme affecte ensuite aléatoirement une lettre à chaque symbole du message codé : c'est la première tentative d'une clé de décodage. Il calcule ensuite la "qualité" du message décodé à l'aide de cette première clé à l'aide de la matrice de transition : c'est la probabilité de la chaine de markov correspondant à ce texte dans la lanque dont est issue la matrice de transition ( modulo quelques modifications pour permettre à un double de stocker ce nombre en mémoire ). Ensuite, à chaque iteration, l'algorithme permute aléatoirement deux lettres dans la clé de dechiffrage, puis teste la "qualité" du message derypté à l'aide de cette nouvelle clé. Si la qualité du texte issu de cette nouvelle clé est meilleure, il garde cette clé, sinon il l'accepte seulement si la condition aléatoire suivante est vérifiée et la rejette sinon.
+L'algorithme affecte ensuite aléatoirement une lettre à chaque symbole du message codé : c'est la première tentative d'une clé de décodage. Il calcule ensuite la "qualité" du message décodé à l'aide de cette première clé à l'aide de la matrice de transition : c'est la probabilité de la chaine de markov correspondant à ce texte dans la langue dont est issue la matrice de transition (modulo quelques modifications pour permettre à un double de stocker ce nombre en mémoire). Ensuite, à chaque iteration, l'algorithme permute aléatoirement deux lettres dans la clé de dechiffrage, puis teste la "qualité" du message derypté à l'aide de cette nouvelle clé. Si la qualité du texte issu de cette nouvelle clé est meilleure, il garde cette clé, sinon il l'accepte seulement si la condition aléatoire suivante est vérifiée.
 \[ \frac{{qualité}_{nouveau \, message}}{{qualité}_{ancien \, message}} \ge  unif(1) \]
 Au bout de quelques milliers d'itérations, l'algorithme converge vers le message decrypté.
 
@@ -239,7 +239,7 @@ server <- function(input, output) {
     probanew=qualite(texte_voisin,matrice_apprentissage)
     probaold=qualite(texte_crypte,matrice_apprentissage)
     if (probanew-probaold >= 0) { return(texte_voisin) } 
-    else if (runif(1) <= exp(probanew - probaold)) { return(texte_voisin) } 
+    else if (runif(1) <= exp(probanew - probaold)) { return(texte_voisin) } #renormalisation de la log-qualité
     else { return(texte_crypte) }
   }
   

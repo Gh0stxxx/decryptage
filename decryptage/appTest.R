@@ -3,10 +3,9 @@ library(ipc)
 library(future)
 library(promises)
 library(stringr)
-
 library(rclipboard)
 plan(multiprocess)
-
+load("environnement.RData")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -43,7 +42,7 @@ ui <- fluidPage(
     radioButtons("language", h3("Language"),choices = list("Anglais" = 1, "Français" = 2),selected = 1),
     sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
     actionButton("go_decryptage", "Décrypter !"),
-    actionButton("stop", "Stop !")
+    actionButton("stop", "Stop !",class = "btn-warning")
   ),
   
   #inputPanel("texte decrypté", div(div(textOutput("texte_decrypte"), class="form-control shiny-bound-input", style="width: 885px; height: 200px; color: grey"), class="shiny-input-panel")
@@ -56,6 +55,8 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   
+  
+  texte_crypte=reactiveVal("")
   
   
   
@@ -213,7 +214,7 @@ server <- function(input, output) {
   }
   
   
-  cryptage_reactive=eventReactive(c(input$go_cryptage),{ #cryptage reactif
+  observeEvent(input$go_cryptage,{ #cryptage reactif
     
     input$language
     langue=input$language
@@ -228,7 +229,7 @@ server <- function(input, output) {
     texte=input$texte_a_crypter
     texte=str_to_lower(texte)
     
-    texte_crypte = cryptage(texte,alphabets)
+    texte_crypte(cryptage(texte,alphabets))
     texte_crypte
   })
   
@@ -313,17 +314,20 @@ server <- function(input, output) {
   # Send interrupt signal to future
   observeEvent(input$stop,{
     if(running())
-      interruptor$interrupt("User Interrupt")
+      interruptor$interrupt("Interompu par l'utilisateur")
   })
 
   output$texte_crypte <- renderText({ #output texte crypte
-    cryptage_reactive()
+    req(texte_crypte())
   })
   
   output$texte_decrypte <- renderText({ #output texte decrypte
     req(result_val())
   })
-  
+
+  output$clip <- renderUI({ #output bouton copier le texte crypte dans le presse-papier 
+    rclipButton("clipbtn", "Copier le texte crypté dans le presse papier", req(texte_crypte()), icon("clipboard"))
+  })
   
 }
 

@@ -322,7 +322,6 @@ cryptage_reactive=eventReactive(c(input$go_cryptage),{ #cryptage reactif
 
 
 decryptage_reactive=eventReactive(c(input$go_decryptage),{ #decryptage reactif
-  Stop=reactiveVal(0)
   input$language
     langue=input$language
     if(langue==2){

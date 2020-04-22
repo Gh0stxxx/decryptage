@@ -61,7 +61,7 @@ ui <- dashboardPage(
   inputPanel(
     
     radioButtons("language", h3("Language"),choices = list("Anglais" = 1, "Français" = 2),selected = 1),
-    sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=500, step= 500),
+    sliderInput("n_iterations_metropolis", "Nombre d'iterations metropolis", min=10, max=80000, value=20000, step= 500),
     actionButton("go_decryptage", "Décrypter !"),
     actionButton("stop", "Stop !",class = "btn-warning", style = "position:relative ; right: -460px; top: -80px")
   ),
@@ -232,9 +232,6 @@ server <- function(input, output) {
   
   
   
-  
-  
-  
   metropolis=function(texte_voisin,texte_crypte,qualite,matrice_apprentissage,frequences_lettres){
     probanew=qualite(texte_voisin,matrice_apprentissage)
     probaold=qualite(texte_crypte,matrice_apprentissage)
@@ -313,37 +310,37 @@ generer_rdata=function(nom_fichier_texte_apprentissage,lecture_texte_apprentissa
     texte_crypte
   })
   
-  
 
   interruptor <- AsyncInterruptor$new()    # To signal STOP to the future
-
   result_val <- reactiveVal()
   running <- reactiveVal(FALSE)
+  
   observeEvent(input$go_decryptage,{
-    input$language
+    
+      #Don't do anything if in the middle of a run
+    if(running())
+      return(NULL)
+    running(TRUE)
+    
     langue=input$language
+    
     if(langue==2){
       load("francais.Rdata")
-      
-    }
+      }
     
     else if (langue==1){
       load("anglais.RData")
-    }
+      }
     
     texte_crypte=input$texte_a_decrypter
     texte_crypte_initial=texte_crypte
-    v=c()
     texte_crypte=str_to_lower(texte_crypte)
     frequences_lettres_cryptees=frequencelettres(texte_crypte,extraction_alphabets_du_texte)
     texte_crypte=textecrypte2(texte_crypte,frequences_lettres,frequences_lettres_cryptees)
     best=list("",-Inf)
     v=c()
     n_iterations_metropolis=input$n_iterations_metropolis
-    #Don't do anything if in the middle of a run
-    if(running())
-      return(NULL)
-    running(TRUE)
+  
 
     # Create new progress bar
     progress <- AsyncProgress$new(message="Decryptage")
@@ -366,6 +363,7 @@ generer_rdata=function(nom_fichier_texte_apprentissage,lecture_texte_apprentissa
         progress$inc(1/n_iterations_metropolis,detail = paste("itération ", i,"/",n_iterations_metropolis,"Courant : ","\n",texte_voisin,"\n\n"))
 
         # throw errors that were signal (if Cancel was clicked)
+        Best<<-best[[1]]
         interruptor$execInterrupts()
       }
 
@@ -375,7 +373,7 @@ generer_rdata=function(nom_fichier_texte_apprentissage,lecture_texte_apprentissa
     # Show notification on error or user interrupt
     fut <- catch(fut,
                  function(e){
-                   result_val(best[[1]])
+                   result_val(NULL)
                    print(e$message)
                    showNotification(e$message)
                  })
@@ -394,7 +392,7 @@ generer_rdata=function(nom_fichier_texte_apprentissage,lecture_texte_apprentissa
   # Send interrupt signal to future
   observeEvent(input$stop,{
     if(running())
-      interruptor$interrupt("Interompu par l'utilisateur")
+      interruptor$interrupt("Decryptage interompu par l'utilisateur")
   })
 
   output$texte_crypte <- renderText({ #output texte crypte
